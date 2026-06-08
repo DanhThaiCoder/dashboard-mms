@@ -59,7 +59,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
         const isPositive = !isWebsiteCard && growthValue > 0
 
         return (
-          <Card key={config.key}>
+          <Card className="glass-card hover-glow" key={config.key}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {config.title}

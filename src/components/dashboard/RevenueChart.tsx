@@ -20,7 +20,7 @@ interface RevenueChartProps {
 
 export function RevenueChart({ data }: RevenueChartProps) {
   return (
-    <Card>
+    <Card className="glass-card hover-glow">
       <CardHeader>
         <CardTitle>Xu hướng doanh thu</CardTitle>
       </CardHeader>

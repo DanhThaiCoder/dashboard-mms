@@ -22,7 +22,7 @@ interface RevenuePieChartProps {
 
 export function RevenuePieChart({ data }: RevenuePieChartProps) {
   return (
-    <Card>
+    <Card className="glass-card hover-glow">
       <CardHeader>
         <CardTitle>Tỷ trọng doanh thu</CardTitle>
       </CardHeader>

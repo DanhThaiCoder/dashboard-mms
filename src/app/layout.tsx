@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
+import { Toaster } from 'sonner'  // Import Toaster
 import './globals.css'
 import { WebsiteProvider } from '@/contexts/WebsiteContext'
 import { ClientLayout } from './ClientLayout'
@@ -30,6 +31,7 @@ export default function RootLayout({
             <ClientLayout>{children}</ClientLayout>
           </WebsiteProvider>
         </ThemeProvider>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   )

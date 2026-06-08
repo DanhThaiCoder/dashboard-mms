@@ -24,7 +24,7 @@ interface WebsiteComparisonProps {
 
 export function WebsiteComparison({ data }: WebsiteComparisonProps) {
   return (
-    <Card>
+    <Card className="glass-card hover-glow">
       <CardHeader>
         <CardTitle>So sánh website</CardTitle>
       </CardHeader>

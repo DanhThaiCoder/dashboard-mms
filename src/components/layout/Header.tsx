@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center gap-4 border-b bg-background px-4">
+    <header className="sticky top-0 z-50 flex h-14 items-center gap-4 bg-background/80 backdrop-blur-sm border-b">
       <div className="flex flex-1 items-center gap-4">
         <form className="hidden flex-1 md:block">
           <div className="relative">

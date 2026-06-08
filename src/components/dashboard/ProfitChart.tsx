@@ -20,7 +20,7 @@ interface ProfitChartProps {
 
 export function ProfitChart({ data }: ProfitChartProps) {
   return (
-    <Card>
+    <Card className="glass-card hover-glow">
       <CardHeader>
         <CardTitle>Xu hướng lợi nhuận</CardTitle>
       </CardHeader>

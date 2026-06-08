@@ -38,7 +38,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex h-full flex-col border-r bg-background">
+    <div className="flex h-full flex-col border-r bg-background glass-card">
       <div className="flex h-14 items-center border-b px-4">
         <Link href="/dashboard" className="flex items-center space-x-2">
           <TrendingUp className="h-6 w-6 text-primary" />
