@@ -31,15 +31,20 @@ export const comparePreviousPeriod = (
 }
 
 export const getUniqueWebsites = (transactions: Transaction[]): string[] => {
-  return [...new Set(transactions.map((t) => t.website_name))]
+  return [...new Set(
+    transactions
+      .map((t) => t.website_name)
+      .filter((name): name is string => typeof name === 'string')
+  )]
 }
 
 export const filterByWebsites = (
   transactions: Transaction[],
-  websites: string[]
+  websites: (string | undefined)[]
 ): Transaction[] => {
-  if (websites.includes('all')) return transactions
-  return transactions.filter((t) => websites.includes(t.website_name))
+  const validWebsites = websites.filter((w): w is string => w !== undefined && w !== 'all')
+  if (validWebsites.length === 0) return transactions
+  return transactions.filter((t) => validWebsites.includes(t.website_name!))
 }
 
 export const filterDataByDateRange = <T extends { date: string }>(

@@ -1,10 +1,10 @@
 'use client'
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
-import { fetchAvailableWebsites } from '@/data/mockData'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { fetchActiveWebsites } from '@/lib/firestore'
 
 interface WebsiteItem {
-  id: string 
+  id: string
   name: string
 }
 
@@ -18,26 +18,26 @@ interface WebsiteContextType {
 const WebsiteContext = createContext<WebsiteContextType | undefined>(undefined)
 
 export function WebsiteProvider({ children }: { children: ReactNode }) {
-  const [selectedWebsites, setSelectedWebsites] = useState<string[]>(['all'])
+  const [selectedWebsiteIds, setSelectedWebsiteIds] = useState<string[]>(['all'])
   const [websiteList, setWebsiteList] = useState<WebsiteItem[]>([])
   const [loadingWebsites, setLoadingWebsites] = useState(true)
 
   useEffect(() => {
-    fetchAvailableWebsites().then(list => {
-      setWebsiteList(list)
+    fetchActiveWebsites().then(list => {
+      setWebsiteList([{ id: 'all', name: 'Tất cả website' }, ...list])
       setLoadingWebsites(false)
     })
   }, [])
 
   return (
-    <WebsiteContext.Provider value={{ selectedWebsites, setSelectedWebsites, websiteList, loadingWebsites }}>
+    <WebsiteContext.Provider value={{ selectedWebsites: selectedWebsiteIds, setSelectedWebsites: setSelectedWebsiteIds, websiteList, loadingWebsites }}>
       {children}
     </WebsiteContext.Provider>
   )
 }
 
-export function useWebsite() {
-  const context = useContext(WebsiteContext)
-  if (!context) throw new Error('useWebsite must be used within WebsiteProvider')
-  return context
+export const useWebsite = () => {
+  const ctx = useContext(WebsiteContext)
+  if (!ctx) throw new Error('useWebsite must be used within WebsiteProvider')
+  return ctx
 }

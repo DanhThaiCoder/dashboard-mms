@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
-import { Toaster } from 'sonner'  // Import Toaster
+import { Toaster } from 'sonner'
 import './globals.css'
 import { WebsiteProvider } from '@/contexts/WebsiteContext'
 import { ClientLayout } from './ClientLayout'
+import { FirebaseProvider } from '@/components/providers/FirebaseProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -27,9 +28,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <WebsiteProvider>
-            <ClientLayout>{children}</ClientLayout>
-          </WebsiteProvider>
+          <FirebaseProvider>
+            <WebsiteProvider>
+              <ClientLayout>{children}</ClientLayout>
+            </WebsiteProvider>
+          </FirebaseProvider>         
         </ThemeProvider>
         <Toaster richColors position="top-right" />
       </body>

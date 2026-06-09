@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useWebsite } from '@/contexts/WebsiteContext'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useEffect } from 'react'
+import Image from 'next/image'
 
 const mainNavItems = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -18,6 +20,14 @@ const mainNavItems = [
 export function Sidebar() {
   const pathname = usePathname()
   const { selectedWebsites, setSelectedWebsites, websiteList, loadingWebsites } = useWebsite()
+
+  const normalizePath = (p: string) => p.replace(/\/$/, '')
+  
+  const isActive = (href: string) => {
+    const cleanPath = normalizePath(pathname)
+    const cleanHref = normalizePath(href)
+    return cleanPath === cleanHref || cleanPath.startsWith(`${cleanHref}/`)
+  }
 
   const handleWebsiteSelect = (websiteId: string) => {
     if (websiteId === 'all') {
@@ -38,23 +48,32 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex h-full flex-col border-r bg-background glass-card">
-      <div className="flex h-14 items-center border-b px-4">
+    <div className="flex h-full flex-col border-r bg-background/50 backdrop-blur-sm glass-card-sidebar">
+      <div className="flex h-14 items-center shadow-md dark:shadow-white/10 px-4 justify-center py-10">
         <Link href="/dashboard" className="flex items-center space-x-2">
-          <TrendingUp className="h-6 w-6 text-primary" />
-          <span className="font-bold">Admin Dashboard</span>
+          <Image 
+           src="/images/logos/logoMMS.png" 
+           alt="Logo" 
+           width={160} 
+           height={140} 
+          >
+          </Image>
         </Link>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 scrollbar-hide">
         <div className="space-y-4 py-4">
+          {/* Main Menu */}
           <div className="px-3 py-2">
-            <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Main Menu</h2>
+            <h2 className="sidebar-title px-4 mb-3">Main Menu</h2>
             <div className="space-y-1">
               {mainNavItems.map((item) => (
                 <Button
                   key={item.href}
-                  variant={pathname === item.href ? 'secondary' : 'ghost'}
-                  className={cn('w-full justify-start', pathname === item.href && 'bg-secondary')}
+                  variant="ghost"
+                  className={cn(
+                    "sidebar-item w-full justify-start",
+                    isActive(item.href) && "active"
+                  )}
                   asChild
                 >
                   <Link href={item.href}>
@@ -65,8 +84,10 @@ export function Sidebar() {
               ))}
             </div>
           </div>
+
+          {/* Websites */}
           <div className="px-3 py-2">
-            <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Websites</h2>
+            <h2 className="sidebar-title px-4 mb-3">Websites</h2>
             <div className="space-y-1">
               {loadingWebsites ? (
                 <Skeleton className="h-8 w-full" />
@@ -76,8 +97,8 @@ export function Sidebar() {
                     key={website.id}
                     variant="ghost"
                     className={cn(
-                      'w-full justify-start',
-                      selectedWebsites.includes(website.id) && 'bg-secondary'
+                      "sidebar-item w-full justify-start",
+                      selectedWebsites.includes(website.id) && "active"
                     )}
                     onClick={() => handleWebsiteSelect(website.id)}
                   >

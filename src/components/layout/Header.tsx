@@ -1,9 +1,14 @@
 'use client'
 
-import { Bell, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ThemeToggle } from './ThemeToggle'
+import {
+  User,
+  Settings,
+  LogOut
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,40 +18,71 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { useRouter } from 'next/navigation'
+import { auth } from '@/lib/firebase'
+import { signOut } from 'firebase/auth'
 
 export function Header() {
+
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await signOut(auth)
+    router.push('/login')
+  }
+
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center gap-4 bg-background/80 backdrop-blur-sm border-b">
+    <header className="sticky top-0 z-50 flex h-14 items-center gap-4 bg-background/80 backdrop-blur-sm shadow-md dark:shadow-white/10 px-4 py-10 md:px-8">
       <div className="flex flex-1 items-center gap-4">
         <form className="hidden flex-1 md:block">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="search-wrapper relative">
+            <Search className="search-icon absolute left-3 top-4 h-4 w-4 z-10" />
             <Input
-              placeholder="Search..."
-              className="pl-8 md:w-2/3 lg:w-1/3"
+              placeholder="Search websites..."
+              className="search-input pl-10 md:w-[400px]"
             />
           </div>
         </form>
       </div>
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon">
-          <Bell className="h-4 w-4" />
-        </Button>
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Button
+              variant="ghost"
+              className="avatar-button relative h-10 w-10 rounded-full"
+            >
               <Avatar className="h-8 w-8">
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarFallback className="avatar-gradient">
+                  AD
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuContent
+            align="end"
+            className="account-dropdown w-56"
+          >
+            <DropdownMenuLabel className="dropdown-label">
+              My Account
+            </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+
+            <DropdownMenuItem className="dropdown-item">
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </DropdownMenuItem>
+              
+            <DropdownMenuItem className="dropdown-item">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </DropdownMenuItem>
+              
+            <DropdownMenuItem onClick={handleLogout} className="dropdown-item logout-item">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

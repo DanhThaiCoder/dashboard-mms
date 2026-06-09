@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Transaction, DateRange, DashboardStats, ChartDataPoint } from '@/types/dashboard'
-import { fetchFilteredTransactions } from '@/data/mockData'
+import { fetchTransactions } from '@/lib/firestore'
 import {
   getPreviousPeriodRange,
   calculateRevenue,
@@ -10,56 +10,28 @@ import {
   aggregateByWebsite,
   aggregateByDate,
 } from '@/lib/calculations'
-import { supabase } from '@/lib/supabase'
 
-export function useDashboardData(
-  selectedWebsites: string[],
-  dateRange: DateRange,
-  dateFilterType: string
-) {
+export function useDashboardData(selectedWebsites: string[], dateRange: DateRange, dateFilterType: string) {
   const [data, setData] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
-    setError(null)
     try {
       const fromDate = dateRange.from.toISOString().split('T')[0]
       const toDate = dateRange.to.toISOString().split('T')[0]
-
-      let websiteNames = selectedWebsites.filter(w => w !== 'all')
-      const transactions = await fetchFilteredTransactions(
-        websiteNames.length ? websiteNames : undefined,
-        fromDate,
-        toDate
-      )
+      const websiteNames = selectedWebsites.includes('all') ? [] : selectedWebsites
+      const transactions = await fetchTransactions(websiteNames, fromDate, toDate)
       setData(transactions)
     } catch (err: any) {
-      console.error('Failed to fetch data:', err)
-      setError(err.message || 'Không thể tải dữ liệu')
-      setData([])
+      setError(err.message)
     } finally {
       setLoading(false)
     }
   }, [selectedWebsites, dateRange])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  // Realtime subscription
-  useEffect(() => {
-    const subscription = supabase
-      .channel('transactions_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
-        fetchData()
-      })
-      .subscribe()
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [fetchData])
+  useEffect(() => { fetchData() }, [fetchData])
 
   // Tính toán stats
   const stats = useMemo((): DashboardStats => {

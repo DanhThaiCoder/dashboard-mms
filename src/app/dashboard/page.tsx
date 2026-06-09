@@ -14,6 +14,7 @@ import { getDateRange } from '@/lib/dateHelpers'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
+import { AuthGuard } from '@/components/auth/AuthGuard'
 
 export default function DashboardPage() {
   const [selectedWebsites, setSelectedWebsites] = useState<string[]>(['all'])
@@ -48,6 +49,7 @@ export default function DashboardPage() {
   }
 
   return (
+    <AuthGuard>
     <div className="space-y-6 p-4 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
@@ -92,5 +94,6 @@ export default function DashboardPage() {
         </>
       )}
     </div>
+    </AuthGuard>
   )
 }

@@ -1,26 +1,26 @@
+// src/app/ClientLayout.tsx
 'use client'
 
-import * as React from 'react'
+import { usePathname } from 'next/navigation'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
-import { useWebsite } from '@/contexts/WebsiteContext'
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
-  const { selectedWebsites, setSelectedWebsites } = useWebsite()
+  const pathname = usePathname()
+  const isLoginPage = pathname === '/login'
+
+  if (isLoginPage) {
+    return <>{children}</>
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="hidden w-64 flex-col md:flex">
-        <Sidebar 
-          selectedWebsites={selectedWebsites}
-          onWebsiteChange={setSelectedWebsites}
-        />
+        <Sidebar />
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   )
