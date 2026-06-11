@@ -1,186 +1,174 @@
-// src/components/filters/DateFilter.tsx (fixed version)
 'use client'
 
 import * as React from 'react'
-import { CalendarIcon, ChevronDown } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { CalendarIcon, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { DateRange, DateFilterType } from '@/types/dashboard'
-import { cn } from '@/lib/utils'
 
 interface DateFilterProps {
   dateRange: DateRange
   onDateRangeChange: (range: DateRange, type: DateFilterType) => void
 }
 
-const quickFilters: { label: string; value: DateFilterType }[] = [
-  { label: 'Hôm nay', value: 'today' },
-  { label: 'Hôm qua', value: 'yesterday' },
-  { label: '7 ngày gần nhất', value: 'last7days' },
-  { label: 'Tuần này', value: 'thisWeek' },
-  { label: 'Tuần trước', value: 'lastWeek' },
-  { label: '30 ngày gần nhất', value: 'last30days' },
-  { label: 'Tháng này', value: 'thisMonth' },
-  { label: 'Tháng trước', value: 'lastMonth' },
-  { label: 'Quý này', value: 'thisQuarter' },
-  { label: 'Quý trước', value: 'lastQuarter' },
-  { label: 'Năm này', value: 'thisYear' },
-  { label: 'Năm trước', value: 'lastYear' },
-]
-
-const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
-const months = [
-  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
+const quickFilters: { label: string; value: DateFilterType; getRange: () => DateRange }[] = [
+  {
+    label: 'Hôm nay',
+    value: 'today',
+    getRange: () => ({ from: new Date(), to: new Date() })
+  },
+  {
+    label: 'Hôm qua',
+    value: 'yesterday',
+    getRange: () => ({ from: subDays(new Date(), 1), to: subDays(new Date(), 1) })
+  },
+  {
+    label: '7 ngày qua',
+    value: 'last7days',
+    getRange: () => ({ from: subDays(new Date(), 7), to: new Date() })
+  },
+  {
+    label: 'Tuần này',
+    value: 'thisWeek',
+    getRange: () => ({ from: startOfWeek(new Date()), to: endOfWeek(new Date()) })
+  },
+  {
+    label: 'Tuần trước',
+    value: 'lastWeek',
+    getRange: () => ({ from: startOfWeek(subDays(new Date(), 7)), to: endOfWeek(subDays(new Date(), 7)) })
+  },
+  {
+    label: '30 ngày qua',
+    value: 'last30days',
+    getRange: () => ({ from: subDays(new Date(), 30), to: new Date() })
+  },
+  {
+    label: 'Tháng này',
+    value: 'thisMonth',
+    getRange: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) })
+  },
+  {
+    label: 'Tháng trước',
+    value: 'lastMonth',
+    getRange: () => ({ from: startOfMonth(subDays(new Date(), 30)), to: endOfMonth(subDays(new Date(), 30)) })
+  },
+  {
+    label: 'Năm này',
+    value: 'thisYear',
+    getRange: () => ({ from: startOfYear(new Date()), to: endOfYear(new Date()) })
+  },
+  {
+    label: 'Năm trước',
+    value: 'lastYear',
+    getRange: () => ({ from: startOfYear(subDays(new Date(), 365)), to: endOfYear(subDays(new Date(), 365)) })
+  }
 ]
 
 export function DateFilter({ dateRange, onDateRangeChange }: DateFilterProps) {
-  const [isOpen, setIsOpen] = React.useState(false)
-  const [tempDateRange, setTempDateRange] = React.useState<{
-    from?: Date
-    to?: Date
-  }>({
-    from: dateRange.from,
-    to: dateRange.to,
-  })
+  const [open, setOpen] = React.useState(false)
+  const [fromDate, setFromDate] = React.useState(format(dateRange.from!, 'yyyy-MM-dd'))
+  const [toDate, setToDate] = React.useState(format(dateRange.to!, 'yyyy-MM-dd'))
 
-  const handleQuickFilter = (value: DateFilterType) => {
-    onDateRangeChange(dateRange, value)
-    setIsOpen(false)
+  React.useEffect(() => {
+    if (dateRange.from && dateRange.to) {
+      setFromDate(format(dateRange.from, 'yyyy-MM-dd'))
+      setToDate(format(dateRange.to, 'yyyy-MM-dd'))
+    }
+  }, [dateRange])
+
+  const handleQuickFilter = (filter: typeof quickFilters[0]) => {
+    const range = filter.getRange()
+    onDateRangeChange(range, filter.value)
+    setOpen(false)
   }
 
-  const handleYearSelect = (year: string) => {
+  const handleApply = () => {
     const newRange = {
-      from: new Date(parseInt(year), 0, 1),
-      to: new Date(parseInt(year), 11, 31),
+      from: new Date(fromDate),
+      to: new Date(toDate)
     }
     onDateRangeChange(newRange, 'custom')
-    setIsOpen(false)
+    setOpen(false)
   }
 
-  const handleMonthSelect = (month: string) => {
-    const currentYear = new Date().getFullYear()
-    const monthIndex = months.indexOf(month)
-    const newRange = {
-      from: new Date(currentYear, monthIndex, 1),
-      to: new Date(currentYear, monthIndex + 1, 0),
-    }
-    onDateRangeChange(newRange, 'custom')
-    setIsOpen(false)
-  }
-
-  const handleDateSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    if (range?.from && range?.to) {
-      const newRange = {
-        from: range.from,
-        to: range.to,
-      }
-      onDateRangeChange(newRange, 'custom')
-      setIsOpen(false)
-    }
-  }
+  const displayText = dateRange.from && dateRange.to
+    ? `${format(dateRange.from, 'dd/MM/yyyy', { locale: vi })} - ${format(dateRange.to, 'dd/MM/yyyy', { locale: vi })}`
+    : 'Chọn khoảng thời gian'
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={cn(
-            'justify-start text-left font-normal',
-            !dateRange && 'text-muted-foreground'
-          )}
+          className="date-filter-trigger"
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {dateRange?.from ? (
-            dateRange.to ? (
-              <>
-                {format(dateRange.from, 'dd/MM/yyyy', { locale: vi })} -{' '}
-                {format(dateRange.to, 'dd/MM/yyyy', { locale: vi })}
-              </>
-            ) : (
-              format(dateRange.from, 'dd/MM/yyyy', { locale: vi })
-            )
-          ) : (
-            <span>Chọn khoảng thời gian</span>
-          )}
-          <ChevronDown className="ml-2 h-4 w-4" />
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            <span>{displayText}</span>
+          </div>
+
+          <ChevronDown className="date-filter-arrow h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
-        <div className="flex">
-          <div className="border-r p-2">
-            <div className="mb-2 font-semibold">Nhanh</div>
-            <div className="space-y-1">
-              {quickFilters.map((filter) => (
-                <Button
-                  key={filter.value}
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => handleQuickFilter(filter.value)}
-                >
-                  {filter.label}
-                </Button>
-              ))}
+      <PopoverContent
+        align="end"
+        className="date-filter-popover"
+      >
+        <div className="space-y-4">
+          <div className="quick-filter-grid">
+            {quickFilters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickFilter(filter)}
+                className="quick-filter-btn"
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+
+          <div className="date-divider" />
+
+          <div className="flex justify-center gap-4">
+            <div className="w-44">
+              <Label htmlFor="from-date">Từ ngày</Label>
+              <Input
+                id="from-date"
+                type="date"
+                value={fromDate}
+                className="modern-date-input justify-center"
+                onChange={(e) => setFromDate(e.target.value)}
+              />
             </div>
-            <div className="mt-4">
-              <div className="mb-2 font-semibold">Chọn năm</div>
-              <Select onValueChange={handleYearSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn năm" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      Năm {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mt-4">
-              <div className="mb-2 font-semibold">Chọn tháng</div>
-              <Select onValueChange={handleMonthSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn tháng" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month) => (
-                    <SelectItem key={month} value={month}>
-                      {month}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="w-44">
+              <Label htmlFor="to-date">Đến ngày</Label>
+              <Input
+                id="to-date"
+                type="date"
+                value={toDate}
+                className="modern-date-input justify-center"
+                onChange={(e) => setToDate(e.target.value)}
+              />
             </div>
           </div>
-          <div className="p-2">
-            <Calendar
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={{
-                from: dateRange?.from,
-                to: dateRange?.to,
-              }}
-              onSelect={handleDateSelect}
-              numberOfMonths={2}
-              locale={vi}
-            />
+          
+          <div className="selected-range-card">
+            <span className="sidebar-title">Khoảng thời gian</span>
+
+            <strong>
+              {fromDate} → {toDate}
+            </strong>
           </div>
+
+          <Button onClick={handleApply} className="btn-primary w-full">
+            Áp dụng
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

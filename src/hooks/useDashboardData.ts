@@ -19,8 +19,12 @@ export function useDashboardData(selectedWebsites: string[], dateRange: DateRang
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const fromDate = dateRange.from.toISOString().split('T')[0]
-      const toDate = dateRange.to.toISOString().split('T')[0]
+      const fromDate = dateRange.from?.toISOString().split('T')[0]
+      const toDate = dateRange.to?.toISOString().split('T')[0]
+      if (!fromDate || !toDate) {
+        setError('Invalid date range')
+        return
+      }
       const websiteNames = selectedWebsites.includes('all') ? [] : selectedWebsites
       const transactions = await fetchTransactions(websiteNames, fromDate, toDate)
       setData(transactions)
@@ -31,7 +35,9 @@ export function useDashboardData(selectedWebsites: string[], dateRange: DateRang
     }
   }, [selectedWebsites, dateRange])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+  fetchData()
+  }, [selectedWebsites.join(','), dateRange.from, dateRange.to])
 
   // Tính toán stats
   const stats = useMemo((): DashboardStats => {
@@ -100,5 +106,6 @@ export function useDashboardData(selectedWebsites: string[], dateRange: DateRang
     websiteComparisonData,
     revenueShareData,
     tableData,
+    refresh: () => {}
   }
 }

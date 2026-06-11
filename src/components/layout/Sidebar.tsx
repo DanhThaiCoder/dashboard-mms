@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useWebsite } from '@/contexts/WebsiteContext'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
 const mainNavItems = [
@@ -18,6 +19,7 @@ const mainNavItems = [
 ]
 
 export function Sidebar() {
+  const router = useRouter()
   const pathname = usePathname()
   const { selectedWebsites, setSelectedWebsites, websiteList, loadingWebsites } = useWebsite()
 
@@ -32,19 +34,18 @@ export function Sidebar() {
   const handleWebsiteSelect = (websiteId: string) => {
     if (websiteId === 'all') {
       setSelectedWebsites(['all'])
+      router.push('/dashboard')
     } else {
-      const newSelection = selectedWebsites.includes('all')
-        ? [websiteId]
-        : selectedWebsites.includes(websiteId)
-        ? selectedWebsites.filter((w) => w !== websiteId)
-        : [...selectedWebsites, websiteId]
-
-      if (newSelection.length === 0) {
-        setSelectedWebsites(['all'])
-      } else {
-        setSelectedWebsites(newSelection)
-      }
+      setSelectedWebsites([websiteId])
+      router.push(`/dashboard/${websiteId}`)
     }
+  }
+
+  console.log('Sidebar render - websiteList:', websiteList, 'loading:', loadingWebsites)
+
+  const isWebsiteActive = (websiteId: string) => {
+    if (websiteId === 'all') return pathname === '/dashboard'
+    return pathname === `/dashboard/${websiteId}`
   }
 
   return (
@@ -96,10 +97,7 @@ export function Sidebar() {
                   <Button
                     key={website.id}
                     variant="ghost"
-                    className={cn(
-                      "sidebar-item w-full justify-start",
-                      selectedWebsites.includes(website.id) && "active"
-                    )}
+                    className={cn("sidebar-item w-full justify-start", isWebsiteActive(website.id) && "active")}
                     onClick={() => handleWebsiteSelect(website.id)}
                   >
                     <Globe className="mr-2 h-4 w-4" />

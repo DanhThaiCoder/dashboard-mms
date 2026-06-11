@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react'
 import { fetchActiveWebsites } from '@/lib/firestore'
 
 interface WebsiteItem {
@@ -13,31 +13,40 @@ interface WebsiteContextType {
   setSelectedWebsites: (websites: string[]) => void
   websiteList: WebsiteItem[]
   loadingWebsites: boolean
+  refreshWebsites: () => Promise<void>
 }
 
 const WebsiteContext = createContext<WebsiteContextType | undefined>(undefined)
 
 export function WebsiteProvider({ children }: { children: ReactNode }) {
-  const [selectedWebsiteIds, setSelectedWebsiteIds] = useState<string[]>(['all'])
+  const [selectedWebsites, setSelectedWebsites] = useState<string[]>(['all'])
   const [websiteList, setWebsiteList] = useState<WebsiteItem[]>([])
   const [loadingWebsites, setLoadingWebsites] = useState(true)
 
-  useEffect(() => {
-    fetchActiveWebsites().then(list => {
-      setWebsiteList([{ id: 'all', name: 'Tất cả website' }, ...list])
-      setLoadingWebsites(false)
-    })
+  const loadWebsites = useCallback(async () => {
+    setLoadingWebsites(true)
+    const list = await fetchActiveWebsites()
+    setWebsiteList([{ id: 'all', name: 'Tất cả website' }, ...list])
+    setLoadingWebsites(false)
   }, [])
 
+  useEffect(() => {
+    loadWebsites()
+  }, [loadWebsites])
+
+  const refreshWebsites = useCallback(async () => {
+    await loadWebsites()
+  }, [loadWebsites])
+
   return (
-    <WebsiteContext.Provider value={{ selectedWebsites: selectedWebsiteIds, setSelectedWebsites: setSelectedWebsiteIds, websiteList, loadingWebsites }}>
+    <WebsiteContext.Provider value={{ selectedWebsites, setSelectedWebsites, websiteList, loadingWebsites, refreshWebsites }}>
       {children}
     </WebsiteContext.Provider>
   )
 }
 
 export const useWebsite = () => {
-  const ctx = useContext(WebsiteContext)
-  if (!ctx) throw new Error('useWebsite must be used within WebsiteProvider')
-  return ctx
+  const context = useContext(WebsiteContext)
+  if (!context) throw new Error('useWebsite must be used within WebsiteProvider')
+  return context
 }

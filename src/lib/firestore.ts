@@ -48,6 +48,7 @@ export const fetchActiveWebsites = async () => {
   }))
 }
 
+// ! <<== CRUD cho websites ==>>
 export const addWebsite = async (data: Omit<Website, 'id' | 'created_at' | 'updated_at'>) => {
   const now = new Date()
   const docRef = await addDoc(websitesCollection, {
@@ -67,6 +68,27 @@ export const deleteWebsite = async (id: string) => {
   const docRef = doc(db, 'websites', id)
   await deleteDoc(docRef)
 }
+// ! ==>> END CRUD cho websites
+
+// ! <<== CRUD cho transactions ==>>
+export const addTransaction = async (data: Omit<Transaction, 'id'>) => {
+  const docRef = await addDoc(collection(db, 'transactions'), {
+    ...data,
+    created_at: new Date()
+  });
+  return { id: docRef.id, ...data };
+};
+
+export const updateTransaction = async (id: string, data: Partial<Transaction>) => {
+  const docRef = doc(db, 'transactions', id);
+  await updateDoc(docRef, data);
+};
+
+export const deleteTransaction = async (id: string) => {
+  const docRef = doc(db, 'transactions', id);
+  await deleteDoc(docRef);
+};
+// ! ==>> END CRUD cho transactions
 
 export interface FirestoreTransaction {
   id: string

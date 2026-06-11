@@ -1,7 +1,6 @@
 export interface Transaction {
   id: string
-  website_id: string
-  website_name?: string
+  website_name: string 
   date: string
   revenue: number
   expense: number
@@ -18,7 +17,7 @@ export interface Website {
 
 export interface DateRange {
   from: Date
-  to: Date
+  to?: Date
 }
 
 export interface StatsData {
