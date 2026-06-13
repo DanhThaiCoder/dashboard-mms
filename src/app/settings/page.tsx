@@ -59,7 +59,6 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold gradient-text bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Cài đặt giao diện
           </h1>
-          <p className="text-muted-foreground mt-1">Tùy chỉnh bo góc và đường viền cho toàn bộ ứng dụng</p>
         </div>
 
         {/* Bo góc */}

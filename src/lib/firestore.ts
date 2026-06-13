@@ -100,32 +100,23 @@ export interface FirestoreTransaction {
   created_at: Date
 }
 
-// Fetch filtered transactions theo website_id
-export const fetchTransactions = async (
-  websiteIds?: string[],
-  fromDate?: string,
-  toDate?: string
-): Promise<Transaction[]> => {
-  const constraints: QueryConstraint[] = []
+export const fetchTransactions = async (websiteNames?: string[], fromDate?: string, toDate?: string) => {
+  const q = query(transactionsCollection);
+  const snapshot = await getDocs(q);
+  const allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Transaction[];
+  console.log('ALL transactions:', allData);
   
-  if (websiteIds && websiteIds.length > 0) {
-    constraints.push(where('website_id', 'in', websiteIds))
+  let filtered = allData;
+  if (websiteNames && websiteNames.length > 0) {
+    filtered = filtered.filter(t => websiteNames.includes(t.website_name));
   }
-  if (fromDate) constraints.push(where('date', '>=', fromDate))
-  if (toDate) constraints.push(where('date', '<=', toDate))
-  constraints.push(orderBy('date', 'desc'))
-  
-  const q = query(transactionsCollection, ...constraints)
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map(doc => {
-    const data = doc.data()
-    return {
-      id: doc.id,
-      website_id: data.website_id,
-      date: data.date,
-      revenue: data.revenue,
-      expense: data.expense,
-      profit: data.profit,
-    } as Transaction
-  })
-}
+
+  if (fromDate) {
+    filtered = filtered.filter(t => t.date >= fromDate);
+  }
+  if (toDate) {
+    filtered = filtered.filter(t => t.date <= toDate);
+  }
+  filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return filtered;
+};

@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { StatsCards } from '@/components/dashboard/StatsCards'
-import { RevenueChart } from '@/components/dashboard/RevenueChart'
-import { ProfitChart } from '@/components/dashboard/ProfitChart'
+import { CombinedChart } from '@/components/dashboard/CombinedChart'
 import { WebsiteComparison } from '@/components/dashboard/WebsiteComparison'
 import { RevenuePieChart } from '@/components/dashboard/RevenuePieChart'
+import { ProfitPieChart } from '@/components/dashboard/ProfitPieChart'
 import { DataTable } from '@/components/dashboard/DataTable'
 import { DateFilter } from '@/components/filters/DateFilter'
 import { useDashboardData } from '@/hooks/useDashboardData'
@@ -25,11 +25,18 @@ export default function DashboardPage() {
     loading,
     error,
     stats,
-    revenueChartData,
+    chartData,
     websiteComparisonData,
     revenueShareData,
     tableData,
   } = useDashboardData(selectedWebsites, dateRange, dateFilterType)
+
+  const profitShareData = websiteComparisonData
+  .filter(item => item.profit > 0)
+  .map(item => ({
+    name: item.website,
+    value: item.profit
+  }))
 
   const handleDateRangeChange = (range: DateRange, type: DateFilterType) => {
     setDateRange(range)
@@ -53,10 +60,12 @@ export default function DashboardPage() {
     <div className="space-y-6 p-4 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tổng hợp dữ liệu</h1>
-          <p className="text-muted-foreground">
-            Tổng quan doanh thu và lợi nhuận
+          <p className="dashboard-subtitle">
+            Tổng hợp dữ liệu
           </p>
+          <h1 className="dashboard-title">
+            Tổng quan doanh thu và lợi nhuận
+          </h1>
         </div>
         <DateFilter
           dateRange={dateRange}
@@ -82,13 +91,11 @@ export default function DashboardPage() {
       ) : (
         <>
           <StatsCards stats={stats} />
-          <div className="grid gap-6 lg:grid-cols-2">
-            <RevenueChart data={revenueChartData} />
-            <ProfitChart data={revenueChartData} />
-          </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <WebsiteComparison data={websiteComparisonData} />
+          <CombinedChart data={chartData} />
+          <WebsiteComparison data={websiteComparisonData} />
+          <div className="grid gap-6 lg:grid-cols-2">          
             <RevenuePieChart data={revenueShareData} />
+            <ProfitPieChart data={profitShareData} />
           </div>
           <DataTable data={tableData} />
         </>

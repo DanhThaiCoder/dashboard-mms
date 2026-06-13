@@ -12,6 +12,8 @@ import { toast } from 'sonner'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { useWebsite } from '@/contexts/WebsiteContext'
 
+const ITEMS_PER_PAGE = 10
+
 export default function WebsitesPage() {
   const [websites, setWebsites] = useState<Website[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,12 +21,14 @@ export default function WebsitesPage() {
   const [editing, setEditing] = useState<Website | null>(null)
   const [form, setForm] = useState({ name: '', domain: '', description: '', is_active: true })
   const [saving, setSaving] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const { refreshWebsites } = useWebsite()
 
   const loadWebsites = async () => {
     setLoading(true)
     const data = await fetchWebsites()
     setWebsites(data)
+    setCurrentPage(1) // reset to first page after data load
     setLoading(false)
   }
 
@@ -85,18 +89,29 @@ export default function WebsitesPage() {
     }
   }
 
+  // Pagination calculations
+  const totalPages = Math.ceil(websites.length / ITEMS_PER_PAGE)
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  const paginatedWebsites = websites.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+
+  const handlePageChange = (page: number) => {
+    if (page < 1) page = 1
+    if (page > totalPages) page = totalPages
+    setCurrentPage(page)
+  }
+
   return (
     <AuthGuard>
       <div className="p-4 md:p-6 space-y-4 page-container-websites">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-2xl font-bold">Quản lý website</h1>
+          <h1 className="text-3xl font-bold gradient-text bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Quản lý website</h1>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="btn-primary"><Plus className="mr-2 h-4 w-4" /> Thêm website</Button>
             </DialogTrigger>
             <DialogContent className="modern-dialog">
               <DialogHeader><DialogTitle className="sidebar-title ">{editing ? 'Sửa' : 'Thêm'} website</DialogTitle></DialogHeader>
-              <div className="space-y-3">
+              <div className="space-y-3 py-2">
                 <Input
                   placeholder="Tên định danh (ví dụ: ozi-vn)"
                   value={form.name}
@@ -149,9 +164,9 @@ export default function WebsitesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {websites.map((w, index) => (
+              {paginatedWebsites.map((w, index) => (
                 <TableRow key={w.id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{startIndex + index + 1}</TableCell>
                   <TableCell>{w.name}</TableCell>
                   <TableCell>{w.description || '—'}</TableCell>
                   <TableCell className="max-w-xs truncate">{w.domain || '—'}</TableCell>
@@ -187,6 +202,7 @@ export default function WebsitesPage() {
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
+                      className="btn-destructive"
                       size="sm"
                       variant="destructive"
                       onClick={() => deleteWebsiteHandler(w.id)}
@@ -206,6 +222,46 @@ export default function WebsitesPage() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="rounded-xl"
+            >
+              ← Trước
+            </Button>
+            <div
+              className="
+                flex items-center justify-center
+                min-w-[90px]
+                h-9
+                rounded-xl
+                border
+                bg-white/70
+                backdrop-blur-md
+                text-sm
+                font-medium
+                text-slate-600
+              "
+            >
+              {currentPage} / {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="rounded-xl"
+            >
+              Sau →
+            </Button>
+          </div>
+        )}
       </div>
     </AuthGuard>
   )

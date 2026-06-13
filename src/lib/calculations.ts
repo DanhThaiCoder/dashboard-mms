@@ -26,7 +26,6 @@ export const comparePreviousPeriod = (
   const current = calculateRevenue(currentData)
   const previous = calculateRevenue(previousData)
   const growth = calculateGrowthRate(current, previous)
-
   return { current, previous, growth }
 }
 
@@ -51,17 +50,19 @@ export const filterDataByDateRange = <T extends { date: string }>(
   data: T[],
   range: DateRange
 ): T[] => {
+  const { from, to } = range
+  if (!from || !to) return data
   return data.filter((item) => {
     const itemDate = new Date(item.date)
-    return isWithinInterval(itemDate, { start: range.from, end: range.to })
+    return isWithinInterval(itemDate, { start: from, end: to })
   })
 }
 
 export const getPreviousPeriodRange = (range: DateRange): DateRange => {
+  if (!range.from || !range.to) return range
   const duration = range.to.getTime() - range.from.getTime()
   const previousTo = new Date(range.from.getTime() - 1)
   const previousFrom = new Date(previousTo.getTime() - duration)
-
   return { from: previousFrom, to: previousTo }
 }
 
@@ -71,7 +72,6 @@ export const aggregateByWebsite = (transactions: Transaction[]): Map<string, {
   profit: number
 }> => {
   const map = new Map()
-
   transactions.forEach((t) => {
     const existing = map.get(t.website_name) || { revenue: 0, expense: 0, profit: 0 }
     map.set(t.website_name, {
@@ -80,23 +80,22 @@ export const aggregateByWebsite = (transactions: Transaction[]): Map<string, {
       profit: existing.profit + t.profit,
     })
   })
-
   return map
 }
 
 export const aggregateByDate = (transactions: Transaction[]): Map<string, {
   revenue: number
+  expense: number
   profit: number
 }> => {
   const map = new Map()
-
   transactions.forEach((t) => {
-    const existing = map.get(t.date) || { revenue: 0, profit: 0 }
+    const existing = map.get(t.date) || { revenue: 0, expense: 0, profit: 0 }
     map.set(t.date, {
       revenue: existing.revenue + t.revenue,
+      expense: existing.expense + t.expense,
       profit: existing.profit + t.profit,
     })
   })
-
   return map
 }

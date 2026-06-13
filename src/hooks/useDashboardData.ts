@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Transaction, DateRange, DashboardStats, ChartDataPoint } from '@/types/dashboard'
 import { fetchTransactions } from '@/lib/firestore'
 import {
@@ -11,56 +11,102 @@ import {
   aggregateByDate,
 } from '@/lib/calculations'
 
-export function useDashboardData(selectedWebsites: string[], dateRange: DateRange, dateFilterType: string) {
+export function useDashboardData(
+  selectedWebsites: string[],
+  dateRange: DateRange,
+  dateFilterType: string
+) {
   const [data, setData] = useState<Transaction[]>([])
+  const [previousData, setPreviousData] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const isFetching = useRef(false)
+  const lastParams = useRef<string>('')
+
   const fetchData = useCallback(async () => {
+    if (isFetching.current) return
+
+    const paramsKey = JSON.stringify({ selectedWebsites, from: dateRange.from, to: dateRange.to })
+    if (lastParams.current === paramsKey) return
+    lastParams.current = paramsKey
+
+    isFetching.current = true
     setLoading(true)
+    setError(null)
+
     try {
-      const fromDate = dateRange.from?.toISOString().split('T')[0]
-      const toDate = dateRange.to?.toISOString().split('T')[0]
-      if (!fromDate || !toDate) {
-        setError('Invalid date range')
-        return
-      }
+      const fromDate = dateRange.from.toISOString().split('T')[0]
+      const toDate = dateRange.to ? dateRange.to.toISOString().split('T')[0] : fromDate
       const websiteNames = selectedWebsites.includes('all') ? [] : selectedWebsites
-      const transactions = await fetchTransactions(websiteNames, fromDate, toDate)
-      setData(transactions)
+
+      const current = await fetchTransactions(websiteNames, fromDate, toDate)
+      setData(current)
+
+      const prevRange = getPreviousPeriodRange(dateRange)
+      const prevFrom = prevRange.from.toISOString().split('T')[0]
+      const prevTo = prevRange.to ? prevRange.to.toISOString().split('T')[0] : prevFrom
+      const previous = await fetchTransactions(websiteNames, prevFrom, prevTo)
+      setPreviousData(previous)
     } catch (err: any) {
-      setError(err.message)
+      console.error('Fetch error:', err)
+      setError(err.message || 'Không thể tải dữ liệu')
     } finally {
       setLoading(false)
+      isFetching.current = false
     }
-  }, [selectedWebsites, dateRange])
+  }, [selectedWebsites, dateRange.from, dateRange.to])
 
   useEffect(() => {
-  fetchData()
-  }, [selectedWebsites.join(','), dateRange.from, dateRange.to])
+    fetchData()
+  }, [fetchData])
+
+  const refresh = useCallback(() => {
+    lastParams.current = ''
+    fetchData()
+  }, [fetchData])
 
   // Tính toán stats
   const stats = useMemo((): DashboardStats => {
     const currentRevenue = calculateRevenue(data)
+    const previousRevenue = calculateRevenue(previousData)
     const currentExpense = calculateExpense(data)
+    const previousExpense = calculateExpense(previousData)
     const currentProfit = calculateProfit(data)
-    const uniqueWebsites = new Set(data.map(t => t.website_name)).size
+    const previousProfit = calculateProfit(previousData)
 
     return {
-      revenue: { current: currentRevenue, previous: 0, growth: 0 },
-      expense: { current: currentExpense, previous: 0, growth: 0 },
-      profit: { current: currentProfit, previous: 0, growth: 0 },
-      websites: uniqueWebsites,
+      revenue: {
+        current: currentRevenue,
+        previous: previousRevenue,
+        growth: calculateGrowthRate(currentRevenue, previousRevenue),
+      },
+      expense: {
+        current: currentExpense,
+        previous: previousExpense,
+        growth: calculateGrowthRate(currentExpense, previousExpense),
+      },
+      profit: {
+        current: currentProfit,
+        previous: previousProfit,
+        growth: calculateGrowthRate(currentProfit, previousProfit),
+      },
+      websites: new Set(data.map(t => t.website_name)).size,
     }
-  }, [data])
+  }, [data, previousData])
 
-  // Các chart data
-  const revenueChartData = useMemo((): ChartDataPoint[] => {
-    const aggregated = aggregateByDate(data)
-    return Array.from(aggregated.entries())
-      .map(([date, values]) => ({ date, revenue: values.revenue, profit: values.profit }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  }, [data])
+  const chartData = useMemo((): ChartDataPoint[] => {
+    
+  const aggregated = aggregateByDate(data)
+  return Array.from(aggregated.entries())
+    .map(([date, values]) => ({
+      date,
+      revenue: values.revenue,
+      expense: values.expense,
+      profit: values.profit,
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+}, [data])
 
   const websiteComparisonData = useMemo(() => {
     const aggregated = aggregateByWebsite(data)
@@ -81,31 +127,22 @@ export function useDashboardData(selectedWebsites: string[], dateRange: DateRang
   }, [data])
 
   const tableData = useMemo(() => {
-    const profitMap = new Map<string, number>()
-    data.forEach(item => {
-      const key = `${item.website_name}_${item.date}`
-      profitMap.set(key, item.profit)
-    })
-    return data.map(item => {
-      const prevDate = new Date(item.date)
-      prevDate.setDate(prevDate.getDate() - 1)
-      const prevDateStr = prevDate.toISOString().split('T')[0]
-      const prevKey = `${item.website_name}_${prevDateStr}`
-      const prevProfit = profitMap.get(prevKey)
-      const growth = prevProfit ? calculateGrowthRate(item.profit, prevProfit) : 0
+    return data.map((item, index) => {
+      const prevItem = previousData.find(p => p.website_name === item.website_name && p.date < item.date)
+      const growth = prevItem ? calculateGrowthRate(item.profit, prevItem.profit) : 0
       return { ...item, growth }
     })
-  }, [data])
+  }, [data, previousData])
 
   return {
     data,
     loading,
     error,
     stats,
-    revenueChartData,
+    chartData,
     websiteComparisonData,
     revenueShareData,
     tableData,
-    refresh: () => {}
+    refresh,
   }
 }

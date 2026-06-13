@@ -13,49 +13,45 @@ import { formatCurrency } from '@/lib/utils'
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
 
-interface RevenuePieChartProps {
+interface ProfitPieChartProps {
   data: Array<{
     name: string
     value: number
   }>
 }
 
-export function RevenuePieChart({ data }: RevenuePieChartProps) {
-
-  const total = data.reduce((sum, item) => sum + item.value, 0)
+export function ProfitPieChart({ data }: ProfitPieChartProps) {
+  const positiveData = data.filter(item => item.value > 0)
+  const hasNegative = data.some(item => item.value < 0)
+  const total = positiveData.reduce((sum, item) => sum + item.value, 0)
 
   return (
     <Card className="glass-card hover-glow">
       <CardHeader>
-        <CardTitle>Tỷ trọng doanh thu</CardTitle>
+        <CardTitle>Tỷ trọng lợi nhuận</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-
               <defs>
-                <linearGradient id="g1">
+                <linearGradient id="profitG1">
                   <stop offset="0%" stopColor="#818cf8" />
                   <stop offset="100%" stopColor="#4f46e5" />
                 </linearGradient>
-                
-                <linearGradient id="g2">
+                <linearGradient id="profitG2">
                   <stop offset="0%" stopColor="#34d399" />
                   <stop offset="100%" stopColor="#059669" />
                 </linearGradient>
-                
-                <linearGradient id="g3">
+                <linearGradient id="profitG3">
                   <stop offset="0%" stopColor="#fbbf24" />
                   <stop offset="100%" stopColor="#d97706" />
                 </linearGradient>
-                
-                <linearGradient id="g4">
+                <linearGradient id="profitG4">
                   <stop offset="0%" stopColor="#f87171" />
                   <stop offset="100%" stopColor="#dc2626" />
                 </linearGradient>
-                
-                <linearGradient id="g5">
+                <linearGradient id="profitG5">
                   <stop offset="0%" stopColor="#a78bfa" />
                   <stop offset="100%" stopColor="#7c3aed" />
                 </linearGradient>
@@ -71,14 +67,13 @@ export function RevenuePieChart({ data }: RevenuePieChartProps) {
                 paddingAngle={2}
                 cornerRadius={5}
                 label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                fill="#8884d8"
                 dataKey="value"
               >
                 {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={`url(#g${index % 5 + 1})`} />
+                  <Cell key={`cell-${index}`} fill={`url(#profitG${index % 5 + 1})`} />
                 ))}
               </Pie>
-              
+
               <text
                 x="50%"
                 y="45%"

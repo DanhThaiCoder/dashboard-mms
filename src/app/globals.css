@@ -598,11 +598,11 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
 }
 
-.page-container-websites thead {
+thead {
   background: linear-gradient(180deg, rgba(99, 102, 241, 0.08), transparent);
 }
 
-.page-container-websites thead th {
+thead th {
   font-size: 13px;
 
   font-weight: 700;
@@ -612,11 +612,16 @@ body {
   text-transform: uppercase;
 }
 
-.page-container-websites tbody tr {
+body tr {
   transition: all 0.25s ease;
 }
 
-.page-container-websites tbody tr:hover {
+th,
+tr {
+  text-align: center !important;
+}
+
+tr:hover {
   background: linear-gradient(
     90deg,
     rgba(99, 102, 241, 0.06),
@@ -681,34 +686,18 @@ body {
   color: white;
 }
 
-.page-container-websites .action-btn {
-  width: 36px;
-  height: 36px;
-
-  padding: 0;
-
-  border-radius: 12px;
-
-  transition: all 0.25s ease;
-}
-
-.page-container-websites .action-btn:hover {
-  transform: translateY(-2px);
-}
-
-.page-container-websites .edit-btn:hover {
-  background: rgba(99, 102, 241, 0.12);
-
-  color: rgb(99, 102, 241);
-}
-
-.page-container-websites .delete-btn:hover {
-  background: rgba(239, 68, 68, 0.12);
-
+.btn-destructive {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1px solid rgb(239, 68, 68);
   color: rgb(239, 68, 68);
 }
 
-.page-container-websites .status-badge {
+.btn-destructive:hover {
+  background: rgb(239, 68, 68) !important;
+  color: white;
+}
+
+.status-badge {
   padding: 4px 10px;
 
   border-radius: 999px;
@@ -1053,34 +1042,6 @@ body {
   justify-content: flex-end;
 
   gap: 12px;
-}
-
-.cancel-btn {
-  border-radius: 14px;
-
-  background: rgba(226, 45, 45, 0.7);
-
-  backdrop-filter: blur(16px);
-
-  border: 1px solid rgba(99, 102, 241, 0.15);
-
-  color: white;
-
-  font-weight: 600;
-
-  transition: all 0.25s ease;
-}
-
-.cancel-btn:hover {
-  transform: translateY(-2px);
-
-  background: rgba(226, 45, 45, 0.9) !important;
-
-  color: white !important;
-
-  border-color: rgba(99, 102, 241, 0.35);
-
-  box-shadow: 0 10px 20px rgba(226, 45, 45, 0.3);
 }
 
 .save-btn {

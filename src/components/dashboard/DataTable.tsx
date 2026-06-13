@@ -30,79 +30,86 @@ import {
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
 import { Transaction } from '@/types/dashboard'
+import { AuthGuard } from '../auth/AuthGuard'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
 
 const columns: ColumnDef<Transaction>[] = [
   {
+    id: 'stt',
+    header: 'STT',
+    cell: ({ row }) => row.index + 1,
+  },
+  {
     accessorKey: 'website_name',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Website
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
+    header: ({ column }) => (
+      <Button
+        className='btn-primary'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Website
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
   },
   {
     accessorKey: 'date',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Ngày
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+    header: ({ column }) => (
+      <Button
+        className='btn-primary'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Ngày
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue('date')
+      if (!dateValue) return '—'
+      try {
+        return format(new Date(dateValue as string), 'dd/MM/yyyy', { locale: vi })
+      } catch {
+        return '—'
+      }
     },
   },
   {
     accessorKey: 'revenue',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Doanh thu
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
+    header: ({ column }) => (
+      <Button
+        className='btn-primary'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Doanh thu
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => formatCurrency(row.getValue('revenue')),
   },
   {
     accessorKey: 'expense',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Chi tiêu
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
+    header: ({ column }) => (
+      <Button
+        className='btn-primary'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Chi tiêu
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => formatCurrency(row.getValue('expense')),
   },
   {
     accessorKey: 'profit',
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Lợi nhuận
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
+    header: ({ column }) => (
+      <Button
+        className='btn-primary'
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Lợi nhuận
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => formatCurrency(row.getValue('profit')),
   },
   {
@@ -143,41 +150,40 @@ export function DataTable({ data }: DataTableProps) {
   })
 
   return (
+    <AuthGuard>
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Tìm kiếm..."
-            value={globalFilter ?? ''}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
+        <form className="hidden flex-1 md:block">
+          <div className="search-wrapper relative">
+            <Search className="search-icon absolute left-3 top-4 h-4 w-4 z-10" />
+            <Input
+              placeholder="Tìm kiếm..."
+              value={globalFilter ?? ''}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="search-input pl-10 md:w-[400px]"
+            />
+          </div>
+        </form>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button className="btn-primary">
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent className="account-dropdown" align="end">
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -186,44 +192,30 @@ export function DataTable({ data }: DataTableProps) {
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center">
                   Không có dữ liệu.
                 </TableCell>
               </TableRow>
@@ -231,24 +223,47 @@ export function DataTable({ data }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2">
+      
+      <div className="flex items-center justify-end gap-3 pt-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
+          className="rounded-xl"
         >
-          Trước
+          ← Trước
         </Button>
+
+        <div
+          className="
+            flex items-center justify-center
+            min-w-[90px]
+            h-9
+            rounded-xl
+            border
+            bg-white/70
+            backdrop-blur-md
+            text-sm
+            font-medium
+            text-slate-600
+          "
+        >
+          {table.getState().pagination.pageIndex + 1} /{' '}
+          {table.getPageCount()}
+        </div>
+
         <Button
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
+          className="rounded-xl"
         >
-          Sau
+          Sau →
         </Button>
       </div>
     </div>
+    </AuthGuard>
   )
 }

@@ -122,19 +122,6 @@ export function TransactionForm({ websiteName, editingTransaction, onSuccess, on
         </strong>
       </div>
         
-      <div className="form-actions">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            className="cancel-btn"
-          >
-            <X className="mr-2 h-4 w-4" />
-            Hủy
-          </Button>
-        )}
-
         <Button
           type="submit"
           disabled={loading}
@@ -146,7 +133,6 @@ export function TransactionForm({ websiteName, editingTransaction, onSuccess, on
             ? 'Cập nhật'
             : 'Thêm giao dịch'}
         </Button>
-      </div>
     </form>
   )
 }

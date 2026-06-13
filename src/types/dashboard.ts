@@ -37,7 +37,7 @@ export interface ChartDataPoint {
   date: string
   revenue: number
   profit: number
-  expense?: number
+  expense: number
   website?: string
 }
 
