@@ -1,7 +1,11 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+  output: 'export',
+  basePath: '/dashboard-mms',
+  assetPrefix: '/dashboard-mms/',
+  images: {
+    unoptimized: true,
+  },
+  trailingSlash: true,
 };
 
-export default nextConfig;
+module.exports = nextConfig;
