@@ -54,10 +54,10 @@ export const getDateRange = (type: DateFilterType): DateRange => {
 }
 
 export const getPreviousPeriodRange = (range: DateRange): DateRange => {
+  if (!range.to) return range;
   const duration = range.to.getTime() - range.from.getTime()
   const previousTo = new Date(range.from.getTime() - 1)
   const previousFrom = new Date(previousTo.getTime() - duration)
-
   return { from: previousFrom, to: previousTo }
 }
 
@@ -65,8 +65,10 @@ export const filterDataByDateRange = <T extends { date: string }>(
   data: T[],
   range: DateRange
 ): T[] => {
+  const { from, to } = range
+  if (!from || !to) return data
   return data.filter((item) => {
     const itemDate = new Date(item.date)
-    return isWithinInterval(itemDate, { start: range.from, end: range.to })
+    return isWithinInterval(itemDate, { start: from, end: to })
   })
 }

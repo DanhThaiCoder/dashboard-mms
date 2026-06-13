@@ -38,7 +38,6 @@ export function useDateFilter(initialType: DateFilterType = 'last30days'): UseDa
   }
 }
 
-// Additional helper hook for quick date selections
 export function useQuickDateFilters() {
   const quickFilters = useMemo(() => {
     const today = new Date()
@@ -91,7 +90,6 @@ export function useQuickDateFilters() {
   }
 }
 
-// Hook for validating date ranges
 export function useDateRangeValidation() {
   const isValidRange = useCallback((range: DateRange): boolean => {
     if (!range.from || !range.to) return false
@@ -100,6 +98,7 @@ export function useDateRangeValidation() {
 
   const getDaysInRange = useCallback((range: DateRange): number => {
     if (!isValidRange(range)) return 0
+    if (!range.to) return 0
     const diffTime = Math.abs(range.to.getTime() - range.from.getTime())
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
   }, [isValidRange])
@@ -116,7 +115,6 @@ export function useDateRangeValidation() {
   }
 }
 
-// Hook for formatting date ranges for display
 export function useDateRangeFormatter() {
   const formatRange = useCallback((range: DateRange, locale: string = 'vi'): string => {
     if (!range.from || !range.to) return 'Chọn khoảng thời gian'
