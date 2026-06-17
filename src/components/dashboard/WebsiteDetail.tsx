@@ -1,3 +1,4 @@
+// src/components/dashboard/WebsiteDetail.tsx
 'use client'
 
 import { useState, useMemo } from 'react'
@@ -15,6 +16,7 @@ import { Trash2, Edit, Plus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-reac
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { TransactionForm } from './TransactionForm'
+import { ScraperForm } from './ScraperForm'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
@@ -38,6 +40,7 @@ export function WebsiteDetail({ websiteId }: Props) {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortField, setSortField] = useState<SortField>('date')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [scrapedData, setScrapedData] = useState<any[]>([])
 
   const selectedWebsites = [websiteId]
   const { loading, error, stats, chartData, tableData, refresh } = useDashboardData(
@@ -47,20 +50,24 @@ export function WebsiteDetail({ websiteId }: Props) {
     [websiteId]
   )
 
+  const handleDataFetched = (data: any[]) => {
+    setScrapedData(data)
+  }
+
   // Sorted data
   const sortedData = useMemo(() => {
     if (!tableData.length) return []
-    
+
     const sorted = [...tableData]
     sorted.sort((a, b) => {
       let aVal: any = a[sortField]
       let bVal: any = b[sortField]
-      
+
       if (sortField === 'date') {
         aVal = new Date(aVal).getTime()
         bVal = new Date(bVal).getTime()
       }
-      
+
       if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
       if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
       return 0
@@ -90,7 +97,6 @@ export function WebsiteDetail({ websiteId }: Props) {
   }
 
   const handleDateRangeChange = (range: DateRange, type: DateFilterType) => {
-    console.log('DateRange changed:', range, type)
     setDateRange(range)
     setDateFilterType(type)
     setCurrentPage(1)
@@ -123,7 +129,7 @@ export function WebsiteDetail({ websiteId }: Props) {
   // Helper to render sort indicator
   const renderSortIndicator = (field: SortField) => {
     if (sortField !== field) return <ArrowUpDown className="ml-2 h-4 w-4" />
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp className="ml-2 h-4 w-4" />
       : <ArrowDown className="ml-2 h-4 w-4" />
   }
@@ -167,34 +173,61 @@ export function WebsiteDetail({ websiteId }: Props) {
           </div>
         </div>
 
+        {/* Scraper Section */}
+        <ScraperForm websiteId={websiteId} onDataFetched={handleDataFetched} />
+
+        {scrapedData.length > 0 && (
+          <div className="modern-table-wrapper">
+            <h2 className="text-lg font-semibold mb-2">Dữ liệu cào được</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {Object.keys(scrapedData[0]).map((key) => (
+                    <TableHead key={key}>{key}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {scrapedData.map((row, idx) => (
+                  <TableRow key={idx}>
+                    {Object.values(row).map((val: any, i) => (
+                      <TableCell key={i}>{val}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
         <div className="stats-wrapper">
           <StatsCards stats={stats} />
         </div>
         <CombinedChart data={chartData} />
 
-        {/* Bảng giao dịch với phân trang và sắp xếp */}
+        {/* Bảng giao dịch */}
         <div className="modern-table-wrapper">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>STT</TableHead>
                 <TableHead>
-                  <Button className='btn-primary' onClick={() => handleSort('date')}>
+                  <Button variant="ghost" onClick={() => handleSort('date')}>
                     Ngày {renderSortIndicator('date')}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button className='btn-primary' onClick={() => handleSort('revenue')}>
+                  <Button variant="ghost" onClick={() => handleSort('revenue')}>
                     Doanh thu (VNĐ) {renderSortIndicator('revenue')}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button className='btn-primary' onClick={() => handleSort('expense')}>
+                  <Button variant="ghost" onClick={() => handleSort('expense')}>
                     Chi phí (VNĐ) {renderSortIndicator('expense')}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button className='btn-primary' onClick={() => handleSort('profit')}>
+                  <Button variant="ghost" onClick={() => handleSort('profit')}>
                     Lợi nhuận (VNĐ) {renderSortIndicator('profit')}
                   </Button>
                 </TableHead>
@@ -244,20 +277,7 @@ export function WebsiteDetail({ websiteId }: Props) {
             >
               ← Trước
             </Button>
-            <div
-              className="
-                flex items-center justify-center
-                min-w-[90px]
-                h-9
-                rounded-xl
-                border
-                bg-white/70
-                backdrop-blur-md
-                text-sm
-                font-medium
-                text-slate-600
-              "
-            >
+            <div className="flex items-center justify-center min-w-[90px] h-9 rounded-xl border bg-white/70 backdrop-blur-md text-sm font-medium text-slate-600">
               {currentPage} / {totalPages}
             </div>
             <Button

@@ -37,26 +37,27 @@ export function WebsiteComparison({ data }: WebsiteComparisonProps) {
       </CardHeader>
       <CardContent>
 
-        <defs>
-         <linearGradient id="revenueGradient" x1="0" y1="0" x2="1" y2="0">
-           <stop offset="0%" stopColor="#818cf8" />
-           <stop offset="100%" stopColor="#4f46e5" />
-         </linearGradient>
-                  
-         <linearGradient id="expenseGradient" x1="0" y1="0" x2="1" y2="0">
-           <stop offset="0%" stopColor="#f87171" />
-           <stop offset="100%" stopColor="#dc2626" />
-         </linearGradient>
-                  
-         <linearGradient id="profitGradient" x1="0" y1="0" x2="1" y2="0">
-           <stop offset="0%" stopColor="#34d399" />
-           <stop offset="100%" stopColor="#059669" />
-         </linearGradient>
-        </defs>
-
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
+
+              <defs>
+               <linearGradient id="revenueGradient" x1="0" y1="0" x2="1" y2="0">
+                 <stop offset="0%" stopColor="#818cf8" />
+                 <stop offset="100%" stopColor="#4f46e5" />
+               </linearGradient>
+                        
+               <linearGradient id="expenseGradient" x1="0" y1="0" x2="1" y2="0">
+                 <stop offset="0%" stopColor="#f87171" />
+                 <stop offset="100%" stopColor="#dc2626" />
+               </linearGradient>
+                        
+               <linearGradient id="profitGradient" x1="0" y1="0" x2="1" y2="0">
+                 <stop offset="0%" stopColor="#34d399" />
+                 <stop offset="100%" stopColor="#059669" />
+               </linearGradient>
+              </defs>
+
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
               dataKey="website"

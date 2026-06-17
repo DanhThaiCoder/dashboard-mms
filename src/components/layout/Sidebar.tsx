@@ -12,6 +12,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
+
 const mainNavItems = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { title: 'Websites', href: '/websites', icon: Globe },
@@ -22,6 +23,7 @@ export function Sidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const { selectedWebsites, setSelectedWebsites, websiteList, loadingWebsites } = useWebsite()
+  const basePath = process.env.NODE_ENV === 'production' ? '/dashboard-mms' : ''
 
   const normalizePath = (p: string) => p.replace(/\/$/, '')
   
@@ -51,14 +53,16 @@ export function Sidebar() {
   return (
     <div className="flex h-full flex-col border-r bg-background/50 backdrop-blur-sm glass-card-sidebar">
       <div className="flex h-14 items-center shadow-md dark:shadow-white/10 px-4 justify-center py-10">
-        <Link href="/dashboard" className="flex items-center space-x-2">
-          <Image 
-           src="/images/logos/logoMMS.png" 
-           alt="Logo" 
-           width={160} 
-           height={140} 
-          >
-          </Image>
+        <Link href="/dashboard" className="flex items-center justify-center">
+          <div className="relative w-40 h-12">
+            <Image 
+              src={`${basePath}/images/logos/logoMMS.png`} 
+              alt="Logo" 
+              fill 
+              className="object-contain"
+              priority 
+            />
+          </div>
         </Link>
       </div>
       <ScrollArea className="flex-1 scrollbar-hide">
