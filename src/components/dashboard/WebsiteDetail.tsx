@@ -43,7 +43,8 @@ export function WebsiteDetail({ websiteId }: Props) {
   const { loading, error, stats, chartData, tableData, refresh } = useDashboardData(
     selectedWebsites,
     dateRange,
-    dateFilterType
+    dateFilterType,
+    [websiteId]
   )
 
   // Sorted data

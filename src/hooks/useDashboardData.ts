@@ -14,7 +14,8 @@ import {
 export function useDashboardData(
   selectedWebsites: string[],
   dateRange: DateRange,
-  dateFilterType: string
+  dateFilterType: string,
+  activeWebsiteNames?: string[]
 ) {
   const [data, setData] = useState<Transaction[]>([])
   const [previousData, setPreviousData] = useState<Transaction[]>([])
@@ -27,7 +28,7 @@ export function useDashboardData(
   const fetchData = useCallback(async () => {
     if (isFetching.current) return
 
-    const paramsKey = JSON.stringify({ selectedWebsites, from: dateRange.from, to: dateRange.to })
+    const paramsKey = JSON.stringify({ selectedWebsites, from: dateRange.from, to: dateRange.to, active: activeWebsiteNames })
     if (lastParams.current === paramsKey) return
     lastParams.current = paramsKey
 
@@ -40,13 +41,22 @@ export function useDashboardData(
       const toDate = dateRange.to ? dateRange.to.toISOString().split('T')[0] : fromDate
       const websiteNames = selectedWebsites.includes('all') ? [] : selectedWebsites
 
-      const current = await fetchTransactions(websiteNames, fromDate, toDate)
-      setData(current)
+      // Fetch current data
+      let current = await fetchTransactions(websiteNames, fromDate, toDate)
 
+      // Fetch previous data
       const prevRange = getPreviousPeriodRange(dateRange)
       const prevFrom = prevRange.from.toISOString().split('T')[0]
       const prevTo = prevRange.to ? prevRange.to.toISOString().split('T')[0] : prevFrom
-      const previous = await fetchTransactions(websiteNames, prevFrom, prevTo)
+      let previous = await fetchTransactions(websiteNames, prevFrom, prevTo)
+
+      // Filter active websites if needed
+      if (selectedWebsites.includes('all') && activeWebsiteNames && activeWebsiteNames.length > 0) {
+        current = current.filter(t => activeWebsiteNames.includes(t.website_name))
+        previous = previous.filter(t => activeWebsiteNames.includes(t.website_name))
+      }
+
+      setData(current)
       setPreviousData(previous)
     } catch (err: any) {
       console.error('Fetch error:', err)
@@ -55,7 +65,7 @@ export function useDashboardData(
       setLoading(false)
       isFetching.current = false
     }
-  }, [selectedWebsites, dateRange.from, dateRange.to])
+  }, [selectedWebsites, dateRange, activeWebsiteNames])
 
   useEffect(() => {
     fetchData()
@@ -66,7 +76,7 @@ export function useDashboardData(
     fetchData()
   }, [fetchData])
 
-  // Tính toán stats
+  // Stats
   const stats = useMemo((): DashboardStats => {
     const currentRevenue = calculateRevenue(data)
     const previousRevenue = calculateRevenue(previousData)
@@ -95,19 +105,20 @@ export function useDashboardData(
     }
   }, [data, previousData])
 
+  // Chart data
   const chartData = useMemo((): ChartDataPoint[] => {
-    
-  const aggregated = aggregateByDate(data)
-  return Array.from(aggregated.entries())
-    .map(([date, values]) => ({
-      date,
-      revenue: values.revenue,
-      expense: values.expense,
-      profit: values.profit,
-    }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-}, [data])
+    const aggregated = aggregateByDate(data)
+    return Array.from(aggregated.entries())
+      .map(([date, values]) => ({
+        date,
+        revenue: values.revenue,
+        expense: values.expense,
+        profit: values.profit,
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  }, [data])
 
+  // Website comparison
   const websiteComparisonData = useMemo(() => {
     const aggregated = aggregateByWebsite(data)
     return Array.from(aggregated.entries()).map(([website, values]) => ({
@@ -118,6 +129,7 @@ export function useDashboardData(
     }))
   }, [data])
 
+  // Revenue share
   const revenueShareData = useMemo(() => {
     const aggregated = aggregateByWebsite(data)
     return Array.from(aggregated.entries()).map(([website, values]) => ({
@@ -126,8 +138,9 @@ export function useDashboardData(
     }))
   }, [data])
 
+  // Table data with growth
   const tableData = useMemo(() => {
-    return data.map((item, index) => {
+    return data.map((item) => {
       const prevItem = previousData.find(p => p.website_name === item.website_name && p.date < item.date)
       const growth = prevItem ? calculateGrowthRate(item.profit, prevItem.profit) : 0
       return { ...item, growth }

@@ -15,8 +15,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/AuthGuard'
+import { useWebsite } from '@/contexts/WebsiteContext'
 
 export default function DashboardPage() {
+  const { websiteList, loadingWebsites } = useWebsite()
+  const activeWebsiteNames = loadingWebsites
+    ? undefined
+    : websiteList.filter(w => w.id !== 'all').map(w => w.id)
+
   const [selectedWebsites, setSelectedWebsites] = useState<string[]>(['all'])
   const [dateRange, setDateRange] = useState<DateRange>(getDateRange('last30days'))
   const [dateFilterType, setDateFilterType] = useState<DateFilterType>('last30days')
@@ -29,7 +35,7 @@ export default function DashboardPage() {
     websiteComparisonData,
     revenueShareData,
     tableData,
-  } = useDashboardData(selectedWebsites, dateRange, dateFilterType)
+  } = useDashboardData(selectedWebsites, dateRange, dateFilterType, activeWebsiteNames)
 
   const profitShareData = websiteComparisonData
   .filter(item => item.profit > 0)
