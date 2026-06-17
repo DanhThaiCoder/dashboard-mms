@@ -6,9 +6,10 @@ import { Header } from '@/components/layout/Header'
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const isLoginPage = pathname === '/login'
 
-  if (isLoginPage) {
+  console.log('ClientLayout pathname:', pathname)
+
+  if (pathname === '/login' || pathname === '/login/') {
     return <>{children}</>
   }
 
@@ -19,7 +20,9 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
       </div>
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   )

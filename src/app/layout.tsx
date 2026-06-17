@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from 'sonner'
+// Ignore missing type declarations for global CSS import
+// @ts-ignore
 import './globals.css'
 import { WebsiteProvider } from '@/contexts/WebsiteContext'
 import { ClientLayout } from './ClientLayout'
