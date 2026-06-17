@@ -8,8 +8,8 @@ const firebaseConfig = {
   projectId: "dashboard-all-c7858",
   storageBucket: "dashboard-all-c7858.firebasestorage.app",
   messagingSenderId: "744377818167",
-  appId: "1:744377818167:web:5cb0891865c5b1b9f233b2",
-  measurementId: "G-W16J7KHFLK"
+  appId: "1:744377818167:web:2f239ba4137a8ef7f233b2",
+  measurementId: "G-CNTC9T8KC4"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
