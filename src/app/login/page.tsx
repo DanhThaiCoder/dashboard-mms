@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { signInWithPopup, onAuthStateChanged } from 'firebase/auth'
 import { auth, googleProvider } from '@/lib/firebase'
 import { Button } from '@/components/ui/button'
@@ -9,17 +10,18 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user && user.email?.endsWith('@mmsgroup.vn')) {
-        window.location.href = '/dashboard'
+        router.push('/dashboard')
       }
     })
     return () => unsubscribe()
-  }, [])
+  }, [router])
 
   const handleGoogleLogin = async () => {
     setLoading(true)
@@ -28,7 +30,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, googleProvider)
       const user = result.user
       if (user.email?.endsWith('@mmsgroup.vn')) {
-        window.location.href = '/dashboard'
+        router.push('/dashboard')
       } else {
         await auth.signOut()
         setError('Chỉ tài khoản @mmsgroup.vn mới được phép truy cập')
