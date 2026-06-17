@@ -1,0 +1,41 @@
+import { NextResponse } from 'next/server'
+import puppeteer from 'puppeteer'
+
+export async function POST(request: Request) {
+  try {
+    const { url } = await request.json()
+    
+    const browser = await puppeteer.launch({
+      headless: false,
+      slowMo: 100
+    })
+    
+    const page = await browser.newPage()
+    await page.goto(url, { waitUntil: 'networkidle2' })
+    
+    // Lấy HTML
+    const html = await page.content()
+    
+    // Lấy tất cả input và button để debug
+    const elements = await page.$$eval('input, button, form', (els) => {
+      return els.map(el => {
+        const tag = el.tagName.toLowerCase()
+        const attrs: Record<string, string> = {}
+        for (const attr of el.attributes) {
+          attrs[attr.name] = attr.value
+        }
+        return { tag, attrs }
+      })
+    })
+    
+    await browser.close()
+    
+    return NextResponse.json({ 
+      html: html.substring(0, 2000),
+      elements,
+      message: 'Check console for details'
+    })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}

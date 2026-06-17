@@ -43,8 +43,6 @@ export function Sidebar() {
     }
   }
 
-  console.log('Sidebar render - websiteList:', websiteList, 'loading:', loadingWebsites)
-
   const isWebsiteActive = (websiteId: string) => {
     if (websiteId === 'all') return pathname === '/dashboard'
     return pathname === `/dashboard/${websiteId}`

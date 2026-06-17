@@ -7,8 +7,6 @@ import { Header } from '@/components/layout/Header'
 export function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
-  console.log('ClientLayout pathname:', pathname)
-
   if (pathname === '/login' || pathname === '/login/') {
     return <>{children}</>
   }

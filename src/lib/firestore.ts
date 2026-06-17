@@ -104,7 +104,6 @@ export const fetchTransactions = async (websiteNames?: string[], fromDate?: stri
   const q = query(transactionsCollection);
   const snapshot = await getDocs(q);
   const allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Transaction[];
-  console.log('ALL transactions:', allData);
   
   let filtered = allData;
   if (websiteNames && websiteNames.length > 0) {

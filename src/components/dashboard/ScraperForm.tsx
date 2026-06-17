@@ -29,7 +29,12 @@ export function ScraperForm({ websiteId, onDataFetched }: ScraperFormProps) {
       const response = await fetch('/api/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, username, password, websiteId })
+        body: JSON.stringify({ 
+          url, 
+          username, 
+          password, 
+          websiteId
+        })
       })
 
       if (!response.ok) {
@@ -56,7 +61,7 @@ export function ScraperForm({ websiteId, onDataFetched }: ScraperFormProps) {
           <div>
             <Label>URL cần cào</Label>
             <Input
-              placeholder="https://example.com/dashboard"
+              placeholder="https://,,,,,"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
@@ -80,7 +85,7 @@ export function ScraperForm({ websiteId, onDataFetched }: ScraperFormProps) {
               />
             </div>
           </div>
-          <Button onClick={handleScrape} disabled={loading} className="w-full">
+          <Button onClick={handleScrape} disabled={loading} className="btn-primary w-full">
             {loading ? 'Đang cào...' : 'Cào dữ liệu'}
           </Button>
         </div>
