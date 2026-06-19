@@ -1,4 +1,3 @@
-// src/lib/firestore.ts
 import { db } from './firebase'
 import {
   collection,
@@ -12,12 +11,12 @@ import {
   where,
   orderBy,
   Timestamp,
+  writeBatch,
   type QueryConstraint,
   type DocumentData,
 } from 'firebase/firestore'
 import { Transaction } from '@/types/dashboard'
 
-// === WEBSITES COLLECTION ===
 export interface Website {
   id: string
   name: string
@@ -98,6 +97,66 @@ export interface FirestoreTransaction {
   expense: number
   profit: number
   created_at: Date
+}
+
+export const saveMonthlyData = async (
+  websiteName: string,
+  transactions: Array<{ date: string; revenue: number; expense: number; profit: number }>
+) => {
+  const monthlyMap = new Map<string, { revenue: number; expense: number; profit: number }>()
+  transactions.forEach(t => {
+    const month = t.date.substring(0, 7)
+    const existing = monthlyMap.get(month)
+    if (existing) {
+      existing.revenue += t.revenue
+      existing.expense += t.expense
+      existing.profit += t.profit
+    } else {
+      monthlyMap.set(month, { revenue: t.revenue, expense: t.expense, profit: t.profit })
+    }
+  })
+
+  const currentMonth = new Date().toISOString().substring(0, 7)
+  const collectionRef = collection(db, 'transactions')
+  let inserted = 0
+  let updated = 0
+
+  for (const [month, data] of monthlyMap) {
+    const q = query(
+      collectionRef,
+      where('website_name', '==', websiteName),
+      where('month', '==', month)
+    )
+    const snapshot = await getDocs(q)
+    const existingDoc = snapshot.docs[0]
+
+    if (existingDoc) {
+      if (month === currentMonth) {
+        await updateDoc(existingDoc.ref, {
+          revenue: data.revenue,
+          expense: data.expense,
+          profit: data.profit,
+          date: `${month}-01`,
+          updated_at: new Date()
+        })
+        updated++
+      }
+    } else {
+      await addDoc(collectionRef, {
+        website_name: websiteName,
+        month: month,
+        date: `${month}-01`,
+        revenue: data.revenue,
+        expense: data.expense,
+        profit: data.profit,
+        created_at: new Date(),
+        updated_at: new Date()
+      })
+      inserted++
+    }
+  }
+
+  return { inserted, updated }
 }
 
 export const fetchTransactions = async (websiteNames?: string[], fromDate?: string, toDate?: string) => {

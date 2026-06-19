@@ -44,8 +44,9 @@ export function Sidebar() {
   }
 
   const isWebsiteActive = (websiteId: string) => {
-    if (websiteId === 'all') return pathname === '/dashboard'
-    return pathname === `/dashboard/${websiteId}`
+  const cleanPath = normalizePath(pathname)
+    if (websiteId === 'all') return cleanPath === '/dashboard'
+    return cleanPath === `/dashboard/${websiteId}`
   }
 
   return (
@@ -99,7 +100,10 @@ export function Sidebar() {
                   <Button
                     key={website.id}
                     variant="ghost"
-                    className={cn("sidebar-item w-full justify-start", isWebsiteActive(website.id) && "active")}
+                    className={cn(
+                      "sidebar-item w-full justify-start",
+                      isWebsiteActive(website.id) && "active"
+                    )}
                     onClick={() => handleWebsiteSelect(website.id)}
                   >
                     <Globe className="mr-2 h-4 w-4" />

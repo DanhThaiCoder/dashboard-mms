@@ -13,10 +13,8 @@ export async function POST(request: Request) {
     const page = await browser.newPage()
     await page.goto(url, { waitUntil: 'networkidle2' })
     
-    // Lấy HTML
     const html = await page.content()
     
-    // Lấy tất cả input và button để debug
     const elements = await page.$$eval('input, button, form', (els) => {
       return els.map(el => {
         const tag = el.tagName.toLowerCase()

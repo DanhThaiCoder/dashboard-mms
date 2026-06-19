@@ -172,33 +172,6 @@ export function WebsiteDetail({ websiteId }: Props) {
           </div>
         </div>
 
-        {/* Scraper Section */}
-        <ScraperForm websiteId={websiteId} onDataFetched={handleDataFetched} />
-
-        {scrapedData.length > 0 && (
-          <div className="modern-table-wrapper">
-            <h2 className="text-lg font-semibold mb-2">Dữ liệu cào được</h2>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {Object.keys(scrapedData[0]).map((key) => (
-                    <TableHead key={key}>{key}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {scrapedData.map((row, idx) => (
-                  <TableRow key={idx}>
-                    {Object.values(row).map((val: any, i) => (
-                      <TableCell key={i}>{val}</TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
         <div className="stats-wrapper">
           <StatsCards stats={stats} />
         </div>
@@ -211,22 +184,22 @@ export function WebsiteDetail({ websiteId }: Props) {
               <TableRow>
                 <TableHead>STT</TableHead>
                 <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('date')}>
+                  <Button className='btn-primary' onClick={() => handleSort('date')}>
                     Ngày {renderSortIndicator('date')}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('revenue')}>
+                  <Button className='btn-primary' onClick={() => handleSort('revenue')}>
                     Doanh thu (VNĐ) {renderSortIndicator('revenue')}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('expense')}>
+                  <Button className='btn-primary' onClick={() => handleSort('expense')}>
                     Chi phí (VNĐ) {renderSortIndicator('expense')}
                   </Button>
                 </TableHead>
                 <TableHead>
-                  <Button variant="ghost" onClick={() => handleSort('profit')}>
+                  <Button className='btn-primary' onClick={() => handleSort('profit')}>
                     Lợi nhuận (VNĐ) {renderSortIndicator('profit')}
                   </Button>
                 </TableHead>
@@ -288,6 +261,37 @@ export function WebsiteDetail({ websiteId }: Props) {
             >
               Sau →
             </Button>
+          </div>
+        )}
+
+        {/* Scraper Section */}
+        <ScraperForm 
+          websiteId={websiteId} 
+          onDataFetched={handleDataFetched} 
+          onDataSaved={refresh}
+        />
+
+        {scrapedData.length > 0 && (
+          <div className="modern-table-wrapper">
+            <h2 className="sidebar-title text-mg font-semibold py-2 px-4">Dữ liệu cào được</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {Object.keys(scrapedData[0]).map((key) => (
+                    <TableHead key={key}>{key}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {scrapedData.map((row, idx) => (
+                  <TableRow key={idx}>
+                    {Object.values(row).map((val: any, i) => (
+                      <TableCell key={i}>{val}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
