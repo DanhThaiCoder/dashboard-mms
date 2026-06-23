@@ -5,6 +5,8 @@ export interface Transaction {
   revenue: number
   expense: number
   profit: number
+  created_at?: Date
+  updated_at?: Date
 }
 
 export interface Website {

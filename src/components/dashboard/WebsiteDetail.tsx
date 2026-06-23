@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { useDashboardData } from '@/hooks/useDashboardData'
 import { getDateRange } from '@/lib/dateHelpers'
 import { DateRange, DateFilterType, Transaction } from '@/types/dashboard'
-import { deleteTransaction } from '@/lib/firestore'
+import { deleteTransaction } from '@/lib/firestore-client'
 import { StatsCards } from './StatsCards'
 import { CombinedChart } from './CombinedChart'
 import { DateFilter } from '@/components/filters/DateFilter'
@@ -32,8 +32,8 @@ const ITEMS_PER_PAGE = 10
 type SortField = 'date' | 'revenue' | 'expense' | 'profit'
 
 export function WebsiteDetail({ websiteId }: Props) {
-  const [dateRange, setDateRange] = useState<DateRange>(getDateRange('last30days'))
-  const [dateFilterType, setDateFilterType] = useState<DateFilterType>('last30days')
+  const [dateRange, setDateRange] = useState<DateRange>(getDateRange('thisMonth'))
+  const [dateFilterType, setDateFilterType] = useState<DateFilterType>('thisMonth')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [currentPage, setCurrentPage] = useState(1)

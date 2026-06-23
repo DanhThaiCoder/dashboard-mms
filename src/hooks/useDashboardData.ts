@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Transaction, DateRange, DashboardStats, ChartDataPoint } from '@/types/dashboard'
-import { fetchTransactions } from '@/lib/firestore'
+import { fetchTransactions } from '@/lib/firestore-client'
 import {
   getPreviousPeriodRange,
   calculateRevenue,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchActiveWebsites } from '@/lib/firestore'
+import { fetchActiveWebsites } from '@/lib/firestore-client'
 
 interface WebsiteItem {
   id: string

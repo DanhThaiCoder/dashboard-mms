@@ -24,8 +24,8 @@ export default function DashboardPage() {
     : websiteList.filter(w => w.id !== 'all').map(w => w.id)
 
   const [selectedWebsites, setSelectedWebsites] = useState<string[]>(['all'])
-  const [dateRange, setDateRange] = useState<DateRange>(getDateRange('last30days'))
-  const [dateFilterType, setDateFilterType] = useState<DateFilterType>('last30days')
+  const [dateRange, setDateRange] = useState<DateRange>(getDateRange('thisMonth'))
+  const [dateFilterType, setDateFilterType] = useState<DateFilterType>('thisMonth')
 
   const {
     loading,

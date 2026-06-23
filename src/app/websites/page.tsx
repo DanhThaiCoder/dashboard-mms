@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { fetchWebsites, addWebsite, updateWebsite, deleteWebsite, type Website } from '@/lib/firestore'
+import { fetchWebsites, addWebsite, updateWebsite, deleteWebsite, type Website } from '@/lib/firestore-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'

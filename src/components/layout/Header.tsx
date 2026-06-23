@@ -68,16 +68,6 @@ export function Header() {
             </DropdownMenuLabel>
 
             <DropdownMenuSeparator />
-
-            <DropdownMenuItem className="dropdown-item">
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </DropdownMenuItem>
-              
-            <DropdownMenuItem className="dropdown-item">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </DropdownMenuItem>
               
             <DropdownMenuItem onClick={handleLogout} className="dropdown-item logout-item">
               <LogOut className="h-4 w-4 mr-2" />

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { addTransaction, updateTransaction } from '@/lib/firestore'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import { addTransaction, updateTransaction } from '@/lib/firestore-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Transaction } from '@/types/dashboard'
-import { X } from 'lucide-react'
 
 interface Props {
   websiteName: string
@@ -17,7 +18,7 @@ interface Props {
 }
 
 export function TransactionForm({ websiteName, editingTransaction, onSuccess, onCancel }: Props) {
-  const [date, setDate] = useState(editingTransaction?.date || new Date().toISOString().slice(0,10))
+  const [date, setDate] = useState(editingTransaction?.date || new Date().toISOString().slice(0, 10))
   const [revenue, setRevenue] = useState(editingTransaction?.revenue.toString() || '')
   const [expense, setExpense] = useState(editingTransaction?.expense.toString() || '')
   const [loading, setLoading] = useState(false)
@@ -59,6 +60,18 @@ export function TransactionForm({ websiteName, editingTransaction, onSuccess, on
       toast.error(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const updatedAt = editingTransaction?.updated_at
+  let formattedUpdatedAt = null
+  if (updatedAt) {
+    try {
+      const date = new Date(updatedAt)
+      if (!isNaN(date.getTime())) {
+        formattedUpdatedAt = format(date, 'dd/MM/yyyy HH:mm:ss', { locale: vi })
+      }
+    } catch (e) {
     }
   }
 
@@ -106,6 +119,17 @@ export function TransactionForm({ websiteName, editingTransaction, onSuccess, on
             placeholder="0"
           />
         </div>
+
+        <div className="form-group">
+          <Label className="modern-label">
+            Cập nhật lần cuối
+          </Label>
+          {formattedUpdatedAt && (
+            <div className="last-updated-premium">
+              <strong>{formattedUpdatedAt}</strong>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="profit-preview">
@@ -121,18 +145,19 @@ export function TransactionForm({ websiteName, editingTransaction, onSuccess, on
           {profit.toLocaleString('vi-VN')} ₫
         </strong>
       </div>
-        
-        <Button
-          type="submit"
-          disabled={loading}
-          className="save-btn"
-        >
-          {loading
-            ? 'Đang xử lý...'
-            : editingTransaction
+
+      <Button
+        type="submit"
+        disabled={loading}
+        className="save-btn"
+      >
+        {loading
+          ? 'Đang xử lý...'
+          : editingTransaction
             ? 'Cập nhật'
             : 'Thêm giao dịch'}
-        </Button>
+      </Button>
+
     </form>
   )
 }

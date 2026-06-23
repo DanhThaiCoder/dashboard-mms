@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react'
-import { fetchActiveWebsites } from '@/lib/firestore'
+import { fetchActiveWebsites } from '@/lib/firestore-client'
 
 interface WebsiteItem {
   id: string
