@@ -1,5 +1,6 @@
 import * as puppeteer from 'puppeteer'
 import { ScraperAdapter } from './base'
+import { getBrowser } from './puppeteer-config'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -70,16 +71,13 @@ export const idBevAdapter: ScraperAdapter = {
       throw new Error('ID-BEV yêu cầu username và password')
     }
 
-    const browser = await puppeteer.launch({
-      headless: false,
-      slowMo: 50,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    const browser = await getBrowser()
 
     try {
       const page = await browser.newPage()
 
-      await page.goto(url, { waitUntil: 'networkidle2' })
+      // Tối ưu: dùng 'domcontentloaded' thay vì 'networkidle2' để nhanh hơn
+      await page.goto(url, { waitUntil: 'domcontentloaded' })
 
       const emailSelector = await findElement(page, [
         'input[name="email"]', 'input[type="email"]', 'input[id*="email"]', '#email'
@@ -96,6 +94,7 @@ export const idBevAdapter: ScraperAdapter = {
       ])
       await page.click(submitSelector)
 
+      // Xử lý popup cookie
       try {
         await page.evaluate(() => {
           const btns = document.querySelectorAll('button, .btn, [role="button"]')
@@ -110,13 +109,25 @@ export const idBevAdapter: ScraperAdapter = {
         })
       } catch (e) {}
 
+      // Đợi menu xuất hiện
       await page.waitForSelector('a[onclick="lichsu_hh()"]', { timeout: 15000 })
 
+      // Click vào lịch sử hoa hồng
       await page.evaluate(() => {
         const el = document.querySelector('a[onclick="lichsu_hh()"]') as HTMLElement
         if (el) el.click()
       })
-      await delay(5000)
+
+      // Đợi frame xuất hiện (thay vì delay 5s)
+      try {
+        await page.waitForFunction(
+          () => document.querySelector('iframe[src*="lichsu_hoahong"]') !== null,
+          { timeout: 10000 }
+        )
+      } catch (e) {
+        // Nếu không tìm thấy iframe, vẫn tiếp tục (có thể dùng page luôn)
+        console.log('⚠️ Không tìm thấy iframe lichsu_hoahong, dùng page hiện tại')
+      }
 
       let targetFrame: puppeteer.Page | puppeteer.Frame = page
       const frames = page.frames()
@@ -129,11 +140,21 @@ export const idBevAdapter: ScraperAdapter = {
 
       const commissionData = await scrapeCommissionHistory(targetFrame as puppeteer.Frame)
 
+      // Quay lại page chính và click nạp tiền
       await page.evaluate(() => {
         const el = document.querySelector('a[onclick="lichsu_naptien()"]') as HTMLElement
         if (el) el.click()
       })
-      await delay(5000)
+
+      // Đợi frame nạp tiền
+      try {
+        await page.waitForFunction(
+          () => document.querySelector('iframe[src*="lichsu_naptien"]') !== null,
+          { timeout: 10000 }
+        )
+      } catch (e) {
+        console.log('⚠️ Không tìm thấy iframe lichsu_naptien, dùng page hiện tại')
+      }
 
       let depositFrame: puppeteer.Page | puppeteer.Frame = page
       const newFrames = page.frames()
@@ -146,6 +167,7 @@ export const idBevAdapter: ScraperAdapter = {
 
       const depositData = await scrapeDepositHistory(depositFrame as puppeteer.Frame)
 
+      // Tổng hợp dữ liệu
       const monthlyMap = new Map<string, { profit: number; revenue: number }>()
 
       commissionData.forEach(item => {
@@ -181,7 +203,7 @@ export const idBevAdapter: ScraperAdapter = {
       return result
 
     } catch (error: any) {
-      console.error('❌ Lỗi:', error)
+      console.error('❌ Lỗi scrape Id-Bev:', error)
       throw new Error(`Scraping failed: ${error.message}`)
     } finally {
       await browser.close()

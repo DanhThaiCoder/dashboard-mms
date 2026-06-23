@@ -21,31 +21,38 @@ const WEBSITES = [
 ]
 
 export async function GET(request: Request) {
-
   try {
     const authHeader = request.headers.get('authorization')
-
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const results = []
-    for (const site of WEBSITES) {
+    const url = new URL(request.url)
+    const siteParam = url.searchParams.get('site')
 
+    const sitesToScrape = siteParam 
+      ? WEBSITES.filter(s => s.id === siteParam)
+      : WEBSITES
+
+    if (sitesToScrape.length === 0) {
+      return NextResponse.json({ error: `Site ${siteParam} not found` }, { status: 404 })
+    }
+
+    const results = []
+    for (const site of sitesToScrape) {
       if (!site.username || !site.password) {
         results.push({ site: site.id, error: 'Missing credentials' })
         continue
       }
 
       try {
-        const adapter = site.adapter || idBevAdapter
-        const data = await adapter.scrape(site.url, {
+        console.log(`🔄 Scraping ${site.id}...`)
+        const data = await site.adapter.scrape(site.url, {
           username: site.username,
           password: site.password
         })
 
         const saved = await saveMonthlyData(site.id, data)
-
         results.push({
           site: site.id,
           inserted: saved.inserted,
@@ -56,11 +63,10 @@ export async function GET(request: Request) {
         results.push({ site: site.id, error: error.message })
       }
     }
-    return NextResponse.json({ success: true, results })
 
+    return NextResponse.json({ success: true, results })
   } catch (error: any) {
-    console.error('❌ [CRON] Lỗi chung trong API cron:', error)
-    console.error('❌ Stack trace:', error.stack)
+    console.error('❌ Cron error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
