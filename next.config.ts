@@ -6,6 +6,14 @@ const nextConfig = {
   trailingSlash: true,
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  serverExternalPackages: [
+    "puppeteer-core",
+    "@sparticuz/chromium-min"
+  ],
+  outputFileTracingIncludes: {
+    "/api/cron": ["node_modules/@sparticuz/chromium-min/bin/"],
+    "/api/test-scrape": ["node_modules/@sparticuz/chromium-min/bin/"],
+  },
 };
 
 module.exports = nextConfig;

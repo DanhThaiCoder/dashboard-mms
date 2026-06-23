@@ -1,21 +1,17 @@
 import { NextResponse } from 'next/server'
-import puppeteer from 'puppeteer'
+import { getBrowser } from '@/lib/scrapers/puppeteer-config'
 
 export async function POST(request: Request) {
   try {
     const { url } = await request.json()
     
-    const browser = await puppeteer.launch({
-      headless: false,
-      slowMo: 100
-    })
-    
+    const browser = await getBrowser()
     const page = await browser.newPage()
     await page.goto(url, { waitUntil: 'networkidle2' })
     
     const html = await page.content()
     
-    const elements = await page.$$eval('input, button, form', (els) => {
+    const elements = await page.$$eval('input, button, form', (els: Element[]) => {
       return els.map(el => {
         const tag = el.tagName.toLowerCase()
         const attrs: Record<string, string> = {}

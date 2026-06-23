@@ -1,4 +1,4 @@
-import * as puppeteer from 'puppeteer'
+import * as puppeteer from 'puppeteer-core'
 import { ScraperAdapter } from './base'
 import { getBrowser } from './puppeteer-config'
 
@@ -26,7 +26,7 @@ const scrapeCommissionHistory = async (pageOrFrame: puppeteer.Page | puppeteer.F
     }).filter((item): item is { hoaHong: string; ngay: string } => item !== null)
   })
 
-  return rows.map(row => {
+  return rows.map((row: { hoaHong: string; ngay: string }) => {
     const profit = parseInt(row.hoaHong.replace(/[^0-9]/g, '')) || 0
     const dateMatch = row.ngay.match(/(\d{4}-\d{2}-\d{2})/)
     const date = dateMatch ? dateMatch[1] : row.ngay
@@ -50,7 +50,7 @@ const scrapeDepositHistory = async (frame: puppeteer.Frame): Promise<Array<{ dat
 
   const successful = rows.filter(row => row.status.trim() === 'Thành công')
 
-  return successful.map(row => {
+  return successful.map((row: { tiền: string; status: string; time: string }) => {
     const revenue = parseInt(row.tiền.replace(/[^0-9]/g, '')) || 0
     const dateMatch = row.time.match(/(\d{2})-(\d{2})-(\d{4})/)
     let date = ''
@@ -76,7 +76,6 @@ export const idBevAdapter: ScraperAdapter = {
     try {
       const page = await browser.newPage()
 
-      // Tối ưu: dùng 'domcontentloaded' thay vì 'networkidle2' để nhanh hơn
       await page.goto(url, { waitUntil: 'domcontentloaded' })
 
       const emailSelector = await findElement(page, [
@@ -94,7 +93,6 @@ export const idBevAdapter: ScraperAdapter = {
       ])
       await page.click(submitSelector)
 
-      // Xử lý popup cookie
       try {
         await page.evaluate(() => {
           const btns = document.querySelectorAll('button, .btn, [role="button"]')
@@ -109,23 +107,19 @@ export const idBevAdapter: ScraperAdapter = {
         })
       } catch (e) {}
 
-      // Đợi menu xuất hiện
       await page.waitForSelector('a[onclick="lichsu_hh()"]', { timeout: 15000 })
 
-      // Click vào lịch sử hoa hồng
       await page.evaluate(() => {
         const el = document.querySelector('a[onclick="lichsu_hh()"]') as HTMLElement
         if (el) el.click()
       })
 
-      // Đợi frame xuất hiện (thay vì delay 5s)
       try {
         await page.waitForFunction(
           () => document.querySelector('iframe[src*="lichsu_hoahong"]') !== null,
           { timeout: 10000 }
         )
       } catch (e) {
-        // Nếu không tìm thấy iframe, vẫn tiếp tục (có thể dùng page luôn)
         console.log('⚠️ Không tìm thấy iframe lichsu_hoahong, dùng page hiện tại')
       }
 
@@ -140,13 +134,11 @@ export const idBevAdapter: ScraperAdapter = {
 
       const commissionData = await scrapeCommissionHistory(targetFrame as puppeteer.Frame)
 
-      // Quay lại page chính và click nạp tiền
       await page.evaluate(() => {
         const el = document.querySelector('a[onclick="lichsu_naptien()"]') as HTMLElement
         if (el) el.click()
       })
 
-      // Đợi frame nạp tiền
       try {
         await page.waitForFunction(
           () => document.querySelector('iframe[src*="lichsu_naptien"]') !== null,
@@ -167,7 +159,6 @@ export const idBevAdapter: ScraperAdapter = {
 
       const depositData = await scrapeDepositHistory(depositFrame as puppeteer.Frame)
 
-      // Tổng hợp dữ liệu
       const monthlyMap = new Map<string, { profit: number; revenue: number }>()
 
       commissionData.forEach(item => {
