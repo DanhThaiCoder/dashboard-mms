@@ -1,15 +1,12 @@
 import puppeteer from 'puppeteer-core'
-import chromium from 'chrome-aws-lambda'
+import chromium from '@sparticuz/chromium-min'
 import { promises as fs } from 'fs'
 
 const getLocalExecutablePath = async (): Promise<string> => {
   const paths = [
-    // Windows
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-    // macOS
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    // Linux
     '/usr/bin/google-chrome',
     '/usr/bin/chromium-browser',
     '/usr/bin/chromium',
@@ -28,24 +25,24 @@ const getLocalExecutablePath = async (): Promise<string> => {
 export const getBrowser = async () => {
   // Trên Vercel hoặc môi trường serverless
   if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-    console.log('🔧 Running on Vercel/Production, using chrome-aws-lambda')
+    console.log('🔧 Running on Vercel/Production, using @sparticuz/chromium-min')
     
     let executablePath: string
     try {
-      executablePath = await chromium.executablePath
+      executablePath = await chromium.executablePath()
       console.log('✅ Chromium executablePath found:', executablePath)
     } catch (error) {
       console.error('❌ Failed to get chromium executablePath:', error)
-      throw new Error('Không thể tìm đường dẫn Chromium. Kiểm tra cài đặt chrome-aws-lambda.')
+      throw new Error('Không thể tìm đường dẫn Chromium. Kiểm tra cài đặt @sparticuz/chromium-min.')
     }
 
     if (!executablePath) {
-      throw new Error('executablePath is empty. Kiểm tra package chrome-aws-lambda.')
+      throw new Error('executablePath is empty. Kiểm tra package @sparticuz/chromium-min.')
     }
 
     return await puppeteer.launch({
       executablePath,
-      headless: chromium.headless,
+      headless: true,
       args: [
         ...chromium.args,
         '--no-sandbox',
@@ -53,7 +50,10 @@ export const getBrowser = async () => {
         '--disable-dev-shm-usage',
         '--disable-gpu',
       ],
-      defaultViewport: chromium.defaultViewport,
+      defaultViewport: {
+        width: 1280,
+        height: 720,
+      },
     })
   }
 
