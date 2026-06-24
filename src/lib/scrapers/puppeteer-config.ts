@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import chromium from '@sparticuz/chromium-min';
 import { promises as fs } from 'fs';
 
 const getLocalExecutablePath = async (): Promise<string> => {
