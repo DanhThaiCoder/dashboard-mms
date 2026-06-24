@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "node scripts/chromium.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
@@ -25,7 +24,6 @@
     "@radix-ui/react-switch": "^1.3.0",
     "@radix-ui/react-tabs": "^1.0.4",
     "@sparticuz/chromium": "^149.0.0",
-    "@sparticuz/chromium-min": "^149.0.0",
     "@tanstack/react-table": "^8.10.7",
     "@types/node": "^20.10.5",
     "@types/react": "^19.0.0",
