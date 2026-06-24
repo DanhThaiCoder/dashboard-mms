@@ -4,6 +4,7 @@ export const saveMonthlyData = async (
   websiteName: string,
   transactions: Array<{ date: string; revenue: number; expense: number; profit: number }>
 ) => {
+
   const monthlyMap = new Map<string, { revenue: number; expense: number; profit: number }>()
   transactions.forEach(t => {
     const month = t.date.substring(0, 7)
@@ -17,7 +18,11 @@ export const saveMonthlyData = async (
     }
   })
 
-  const currentMonth = new Date().toISOString().substring(0, 7)
+  const now = new Date()
+  const currentMonth = now.toISOString().substring(0, 7)
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    .toISOString().substring(0, 7)
+
   const collectionRef = adminDb.collection('transactions')
   let inserted = 0
   let updated = 0
@@ -42,7 +47,7 @@ export const saveMonthlyData = async (
       inserted++
     } else {
       const doc = snapshot.docs[0]
-      if (month === currentMonth) {
+      if (month === currentMonth || month === lastMonth) {
         await doc.ref.update({
           revenue: data.revenue,
           expense: data.expense,
@@ -50,9 +55,12 @@ export const saveMonthlyData = async (
           updated_at: new Date(),
         })
         updated++
+      } else {
+        console.log(`⏭️ Skipping old month: ${month}`)
       }
     }
   }
 
+  console.log(`✅ saveMonthlyData completed: inserted=${inserted}, updated=${updated}`)
   return { inserted, updated }
 }

@@ -6,7 +6,6 @@ import { saveMonthlyData } from '@/lib/firestore-admin'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
     const { websiteId, url, username, password } = body
 
     if (!websiteId || !url || !username || !password) {
@@ -31,7 +30,6 @@ export async function POST(request: Request) {
     }
 
     const data = await scraper.scrape(url, { username, password })
-
     const saved = await saveMonthlyData(websiteId, data)
 
     return NextResponse.json({

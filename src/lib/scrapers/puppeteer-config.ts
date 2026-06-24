@@ -2,7 +2,6 @@ import puppeteer from 'puppeteer-core'
 import chromium from 'chrome-aws-lambda'
 import { promises as fs } from 'fs'
 
-// Hàm tìm Chrome executable trên local
 const getLocalExecutablePath = async (): Promise<string> => {
   const paths = [
 

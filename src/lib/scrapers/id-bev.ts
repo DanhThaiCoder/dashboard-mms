@@ -14,18 +14,50 @@ const findElement = async (page: puppeteer.Page, selectors: string[], timeout = 
   throw new Error(`Không tìm thấy selector: ${selectors.join(', ')}`)
 }
 
-const scrapeCommissionHistory = async (pageOrFrame: puppeteer.Page | puppeteer.Frame): Promise<Array<{ date: string; profit: number }>> => {
-  const rows = await pageOrFrame.$$eval('.Row', (elements: Element[]) => {
-    return elements.map(row => {
-      const cells = row.querySelectorAll('.Cell')
-      if (cells.length < 5) return null
-      const hoaHongEl = cells[0]?.querySelector('o')
-      const hoaHong = hoaHongEl ? hoaHongEl.textContent?.trim() || '' : cells[0]?.textContent?.trim() || ''
-      const ngay = cells[4]?.textContent?.trim() || ''
-      return { hoaHong, ngay }
-    }).filter((item): item is { hoaHong: string; ngay: string } => item !== null)
-  })
+const getFrameHtml = async (frame: puppeteer.Frame) => {
+  try {
+    const html = await frame.content()
+    return html
+  } catch (e) {
+    return null
+  }
+}
 
+const waitForDataInFrame = async (frame: puppeteer.Frame, selector: string, timeout = 10000) => {
+  try {
+    await frame.waitForSelector(selector, { timeout })
+    return true
+  } catch {
+    return false
+  }
+}
+
+const scrapeCommissionHistory = async (pageOrFrame: puppeteer.Page | puppeteer.Frame): Promise<Array<{ date: string; profit: number }>> => {
+  const selectors = ['.Row', '.divRow', 'tr', '[class*="Row"]', '.item-row']
+  let rows: any[] = []
+  let usedSelector = ''
+
+  for (const sel of selectors) {
+    try {
+      rows = await pageOrFrame.$$eval(sel, (elements) => {
+        return elements.map(row => {
+          let cells = row.querySelectorAll('.Cell')
+          if (cells.length < 5) {
+            cells = row.querySelectorAll('td, div:not(:empty)')
+          }
+          if (cells.length < 5) return null
+          const hoaHongEl = cells[0]?.querySelector('o')
+          const hoaHong = hoaHongEl ? hoaHongEl.textContent?.trim() || '' : cells[0]?.textContent?.trim() || ''
+          const ngay = cells[4]?.textContent?.trim() || ''
+          return { hoaHong, ngay }
+        }).filter((item): item is { hoaHong: string; ngay: string } => item !== null)
+      })
+      if (rows.length > 0) {
+        usedSelector = sel
+        break
+      }
+    } catch (e) {}
+  }
   return rows.map((row: { hoaHong: string; ngay: string }) => {
     const profit = parseInt(row.hoaHong.replace(/[^0-9]/g, '')) || 0
     const dateMatch = row.ngay.match(/(\d{4}-\d{2}-\d{2})/)
@@ -35,18 +67,33 @@ const scrapeCommissionHistory = async (pageOrFrame: puppeteer.Page | puppeteer.F
 }
 
 const scrapeDepositHistory = async (frame: puppeteer.Frame): Promise<Array<{ date: string; revenue: number }>> => {
-  const rows = await frame.$$eval('.Row', (elements: Element[]) => {
-    return elements.map(row => {
-      const cells = row.querySelectorAll('.Cell')
-      if (cells.length < 8) return null
-      const tiềnEl = cells[2]?.querySelector('o')
-      const statusEl = cells[3]?.querySelector('o')
-      const timeEl = cells[7]?.textContent?.trim() || ''
-      const tiền = tiềnEl ? tiềnEl.textContent?.trim() || '' : cells[2]?.textContent?.trim() || ''
-      const status = statusEl ? statusEl.textContent?.trim() || '' : ''
-      return { tiền, status, time: timeEl }
-    }).filter((item): item is { tiền: string; status: string; time: string } => item !== null)
-  })
+  const selectors = ['.Row', '.divRow', 'tr', '[class*="Row"]']
+  let rows: any[] = []
+  let usedSelector = ''
+
+  for (const sel of selectors) {
+    try {
+      rows = await frame.$$eval(sel, (elements) => {
+        return elements.map(row => {
+          let cells = row.querySelectorAll('.Cell')
+          if (cells.length < 8) {
+            cells = row.querySelectorAll('td, div:not(:empty)')
+          }
+          if (cells.length < 8) return null
+          const tiềnEl = cells[2]?.querySelector('o')
+          const statusEl = cells[3]?.querySelector('o')
+          const timeEl = cells[7]?.textContent?.trim() || ''
+          const tiền = tiềnEl ? tiềnEl.textContent?.trim() || '' : cells[2]?.textContent?.trim() || ''
+          const status = statusEl ? statusEl.textContent?.trim() || '' : ''
+          return { tiền, status, time: timeEl }
+        }).filter((item): item is { tiền: string; status: string; time: string } => item !== null)
+      })
+      if (rows.length > 0) {
+        usedSelector = sel
+        break
+      }
+    } catch (e) {}
+  }
 
   const successful = rows.filter(row => row.status.trim() === 'Thành công')
 
@@ -117,11 +164,12 @@ export const idBevAdapter: ScraperAdapter = {
       try {
         await page.waitForFunction(
           () => document.querySelector('iframe[src*="lichsu_hoahong"]') !== null,
-          { timeout: 10000 }
+          { timeout: 15000 }
         )
       } catch (e) {
-        console.log('⚠️ Không tìm thấy iframe lichsu_hoahong, dùng page hiện tại')
       }
+
+      await delay(2000)
 
       let targetFrame: puppeteer.Page | puppeteer.Frame = page
       const frames = page.frames()
@@ -132,8 +180,17 @@ export const idBevAdapter: ScraperAdapter = {
         }
       }
 
-      const commissionData = await scrapeCommissionHistory(targetFrame as puppeteer.Frame)
+      if (targetFrame !== page) {
+        const html = await getFrameHtml(targetFrame as puppeteer.Frame)
+        if (html) {
+        }
+      }
 
+      if (targetFrame !== page) {
+        await waitForDataInFrame(targetFrame as puppeteer.Frame, '.Row', 5000)
+      }
+
+      const commissionData = await scrapeCommissionHistory(targetFrame as puppeteer.Frame)
       await page.evaluate(() => {
         const el = document.querySelector('a[onclick="lichsu_naptien()"]') as HTMLElement
         if (el) el.click()
@@ -142,11 +199,12 @@ export const idBevAdapter: ScraperAdapter = {
       try {
         await page.waitForFunction(
           () => document.querySelector('iframe[src*="lichsu_naptien"]') !== null,
-          { timeout: 10000 }
+          { timeout: 15000 }
         )
       } catch (e) {
-        console.log('⚠️ Không tìm thấy iframe lichsu_naptien, dùng page hiện tại')
       }
+
+      await delay(2000)
 
       let depositFrame: puppeteer.Page | puppeteer.Frame = page
       const newFrames = page.frames()
@@ -155,6 +213,16 @@ export const idBevAdapter: ScraperAdapter = {
           depositFrame = frame
           break
         }
+      }
+
+      if (depositFrame !== page) {
+        const html = await getFrameHtml(depositFrame as puppeteer.Frame)
+        if (html) {
+        }
+      }
+
+      if (depositFrame !== page) {
+        await waitForDataInFrame(depositFrame as puppeteer.Frame, '.Row', 5000)
       }
 
       const depositData = await scrapeDepositHistory(depositFrame as puppeteer.Frame)
@@ -194,7 +262,7 @@ export const idBevAdapter: ScraperAdapter = {
       return result
 
     } catch (error: any) {
-      console.error('❌ Lỗi scrape Id-Bev:', error)
+      console.error('❌ Error scraping Id-Bev:', error)
       throw new Error(`Scraping failed: ${error.message}`)
     } finally {
       await browser.close()
