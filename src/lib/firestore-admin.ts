@@ -56,11 +56,10 @@ export const saveMonthlyData = async (
         })
         updated++
       } else {
-        console.log(`⏭️ Skipping old month: ${month}`)
       }
     }
   }
 
-  console.log(`✅ saveMonthlyData completed: inserted=${inserted}, updated=${updated}`)
+  console.log(`inserted=${inserted}, updated=${updated}`)
   return { inserted, updated }
 }

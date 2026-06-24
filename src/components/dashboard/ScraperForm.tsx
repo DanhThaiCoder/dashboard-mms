@@ -8,6 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 
+const getBasePath = (): string => {
+  if (process.env.NODE_ENV === 'production') {
+    return '/dashboard-mms'
+  }
+  return ''
+}
+
 interface ScraperFormProps {
   websiteId: string
   onDataFetched: (data: any[]) => void
@@ -28,7 +35,10 @@ export function ScraperForm({ websiteId, onDataFetched, onDataSaved }: ScraperFo
 
     setLoading(true)
     try {
-      const response = await fetch('/api/test-scrape', {
+      const basePath = getBasePath()
+      const apiUrl = `${basePath}/api/test-scrape`
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ websiteId, url, username, password })
