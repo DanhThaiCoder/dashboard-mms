@@ -112,10 +112,10 @@ const scrapeDepositHistory = async (frame: puppeteer.Frame): Promise<Array<{ dat
 }
 
 export const vipBevAdapter: ScraperAdapter = {
-  id: 'Id-Bev',
+  id: 'Vip-Bev',
   scrape: async (url: string, credentials?: { username?: string; password?: string }) => {
     if (!credentials?.username || !credentials?.password) {
-      throw new Error('ID-BEV yêu cầu username và password')
+      throw new Error('VIP-BEV yêu cầu username và password')
     }
 
     const browser = await getBrowser()
@@ -262,7 +262,7 @@ export const vipBevAdapter: ScraperAdapter = {
       return result
 
     } catch (error: any) {
-      console.error('❌ Error scraping Id-Bev:', error)
+      console.error('❌ Error scraping Vip-Bev:', error)
       throw new Error(`Scraping failed: ${error.message}`)
     } finally {
       await browser.close()

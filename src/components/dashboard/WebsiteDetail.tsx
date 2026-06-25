@@ -25,13 +25,16 @@ import { vi } from 'date-fns/locale'
 
 interface Props {
   websiteId: string
+  defaultUrl?: string
+  defaultUsername?: string
+  defaultPassword?: string
 }
 
 const ITEMS_PER_PAGE = 10
 
 type SortField = 'date' | 'revenue' | 'expense' | 'profit'
 
-export function WebsiteDetail({ websiteId }: Props) {
+export function WebsiteDetail({ websiteId, defaultUrl, defaultUsername, defaultPassword }: Props) {
   const [dateRange, setDateRange] = useState<DateRange>(getDateRange('thisMonth'))
   const [dateFilterType, setDateFilterType] = useState<DateFilterType>('thisMonth')
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -266,8 +269,11 @@ export function WebsiteDetail({ websiteId }: Props) {
 
         {/* Scraper Section */}
         <ScraperForm 
-          websiteId={websiteId} 
-          onDataFetched={handleDataFetched} 
+          websiteId={websiteId}
+          defaultUrl={defaultUrl}
+          defaultUsername={defaultUsername}
+          defaultPassword={defaultPassword}
+          onDataFetched={handleDataFetched}
           onDataSaved={refresh}
         />
 
